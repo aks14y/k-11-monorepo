@@ -109,11 +109,11 @@ module.exports = (_, argv) => {
   // Conditionally add MFE aliases based on feature flags
   // Uses getPackagePath() which respects USE_DIST env variable from .env files
   if (ENABLE_K11_INBOX) {
-    aliases["@mfes/k11-inbox"] = getPackagePath("k11-inbox");
+    aliases["k11-inbox"] = getPackagePath("k11-inbox");
   }
 
   if (ENABLE_K11_MONITORING) {
-    aliases["@mfes/k11-monitoring"] = getPackagePath("k11-monitoring");
+    aliases["k11-monitoring"] = getPackagePath("k11-monitoring");
   }
 
   // ============================================================================
@@ -153,8 +153,8 @@ module.exports = (_, argv) => {
               ];
               
               // Conditionally allow MFEs based on feature flags
-              if (ENABLE_K11_INBOX) allowedPackages.push("@mfes/k11-inbox");
-              if (ENABLE_K11_MONITORING) allowedPackages.push("@mfes/k11-monitoring");
+              if (ENABLE_K11_INBOX) allowedPackages.push("k11-inbox");
+              if (ENABLE_K11_MONITORING) allowedPackages.push("k11-monitoring");
               
               return !allowedPackages.some(pkg => modulePath.includes(pkg));
             }

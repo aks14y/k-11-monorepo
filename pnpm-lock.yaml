@@ -47,18 +47,18 @@ importers:
       '@emotion/unitless':
         specifier: ^0.8.1
         version: 0.8.1
-      '@mfes/k11-inbox':
-        specifier: workspace:*
-        version: link:../../packages/k11-inbox
-      '@mfes/k11-monitoring':
-        specifier: workspace:*
-        version: link:../../packages/k11-monitoring
       '@remix-run/router':
         specifier: ^1.19.1
         version: 1.23.1
       '@types':
         specifier: workspace:*
         version: link:../../packages/types
+      k11-inbox:
+        specifier: workspace:*
+        version: link:../../packages/k11-inbox
+      k11-monitoring:
+        specifier: workspace:*
+        version: link:../../packages/k11-monitoring
       react:
         specifier: ^18.2.0
         version: 18.3.1

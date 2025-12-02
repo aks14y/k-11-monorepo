@@ -136,7 +136,7 @@ optimization: {
 **Implementation:**
 ```typescript
 const InboxApp = lazy(() =>
-  import(/* webpackPrefetch: true */ "@mfes/k11-inbox").then((mod) => ({
+  import(/* webpackPrefetch: true */ "k11-inbox").then((mod) => ({
     default: mod.InboxApp
   }))
 );
@@ -156,7 +156,7 @@ const InboxApp = lazy(() =>
 
 **Implementation:**
 ```typescript
-import(/* webpackPrefetch: true */ "@mfes/k11-inbox")
+import(/* webpackPrefetch: true */ "k11-inbox")
 ```
 
 **What It Does:**

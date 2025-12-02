@@ -1,5 +1,5 @@
 {
-  "name": "@mfes/k11-inbox",
+  "name": "k11-inbox",
   "version": "0.1.0",
   "main": "dist/index.js",
   "module": "dist/index.js",

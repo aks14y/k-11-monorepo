@@ -16,16 +16,16 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@mfes/k11-inbox": [
+      "k11-inbox": [
         "packages/k11-inbox/src/index.ts"
       ],
-      "@mfes/k11-inbox/*": [
+      "k11-inbox/*": [
         "packages/k11-inbox/src/*"
       ],
-      "@mfes/k11-monitoring": [
+      "k11-monitoring": [
         "packages/k11-monitoring/src/index.ts"
       ],
-      "@mfes/k11-monitoring/*": [
+      "k11-monitoring/*": [
         "packages/k11-monitoring/src/*"
       ],
       "@design-system": [

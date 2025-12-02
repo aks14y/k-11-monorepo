@@ -44,7 +44,7 @@ k11-monorepo/
 **Dependencies:**
 - Consumes all packages via `workspace:*` protocol
 - Uses `@design-system` for UI components
-- Lazy loads `@mfes/k11-inbox` and `@mfes/k11-monitoring`
+- Lazy loads `k11-inbox` and `k11-monitoring`
 - Uses `@types` for shared type definitions
 
 **Build Output:**
@@ -248,8 +248,8 @@ Defines workspace boundaries for pnpm.
 ### **Root `tsconfig.json`**
 - Base compiler options
 - Path mappings for workspace packages:
-  - `@mfes/k11-inbox` → `packages/k11-inbox/src/`
-  - `@mfes/k11-monitoring` → `packages/k11-monitoring/src/`
+  - `k11-inbox` → `packages/k11-inbox/src/`
+  - `k11-monitoring` → `packages/k11-monitoring/src/`
   - `@design-system` → `packages/design-system/src/`
   - `@types` → `packages/types/src/`
 
