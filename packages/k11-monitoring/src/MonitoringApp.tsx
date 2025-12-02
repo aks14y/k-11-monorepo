@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Card, Heading, Text, Stack } from "@design-system";
+import { Heading, Text, Stack } from "@design-system";
 
 const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.xl};
@@ -75,11 +75,15 @@ const CardsContainer = styled.div`
   max-width: 600px;
 `;
 
-const MonitoringCard = styled(Card)`
+const MonitoringCard = styled.div`
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: ${({ theme }) => theme.spacing.xl};
+  box-shadow: ${({ theme }) => theme.shadows.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.xl};
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   

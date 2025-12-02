@@ -4,7 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "webpack serve --config webpack.config.js --env development",
+    "dev:dist": "USE_DIST=true webpack serve --config webpack.config.js --env development",
     "build": "webpack --config webpack.config.js --env production",
+    "build:analyze": "webpack --config webpack.config.js --env production --env analyze",
+    "build:stats": "webpack --config webpack.config.js --env production --json > dist/bundle-stats.json",
+    "analyze": "webpack-bundle-analyzer dist/bundle-stats.json || echo 'Run pnpm build:stats first to generate bundle-stats.json'",
+    "serve": "serve dist -l 3000",
+    "serve:prod": "serve dist -l 3000 --single",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
@@ -41,10 +47,12 @@
     "events": "^3.3.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "html-webpack-plugin": "^5.6.0",
+    "serve": "^14.2.5",
     "style-loader": "^3.3.4",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
     "webpack": "^5.90.0",
+    "webpack-bundle-analyzer": "^5.0.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   }

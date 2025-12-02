@@ -16,7 +16,7 @@ const ENABLE_K11_MONITORING = process.env.ENABLE_K11_MONITORING !== "false";
 
 const InboxApp: LazyExoticComponent<ComponentType<any>> | undefined = ENABLE_K11_INBOX
   ? lazy(() =>
-      import("@mfes/k11-inbox").then((mod) => ({
+      import(/* webpackPrefetch: true */ "@mfes/k11-inbox").then((mod) => ({
         default: mod.InboxApp
       }))
     )
@@ -24,7 +24,7 @@ const InboxApp: LazyExoticComponent<ComponentType<any>> | undefined = ENABLE_K11
 
 const MonitoringApp: LazyExoticComponent<ComponentType<any>> | undefined = ENABLE_K11_MONITORING
   ? lazy(() =>
-      import("@mfes/k11-monitoring").then((mod) => ({
+      import(/* webpackPrefetch: true */ "@mfes/k11-monitoring").then((mod) => ({
         default: mod.MonitoringApp
       }))
     )

@@ -16,9 +16,9 @@ const root = createRoot(container);
 root.render(
   <ThemeProvider>
     <AppProvider>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </AppProvider>
   </ThemeProvider>
 );

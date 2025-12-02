@@ -14,6 +14,7 @@
     "skipLibCheck": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
+    "noEmit": true,
     "paths": {
       "@mfes/k11-inbox": [
         "packages/k11-inbox/src/index.ts"
@@ -35,9 +36,6 @@
       ],
       "@utils/*": [
         "packages/utils/src/*"
-      ],
-      "@mfes/types": [
-        "packages/types/src/index.ts"
       ],
       "@types": [
         "packages/types/src/index.ts"

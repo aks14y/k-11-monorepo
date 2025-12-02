@@ -34,11 +34,13 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 const shellNodeModules = path.resolve(__dirname, "node_modules");
 
 module.exports = (_, argv) => {
   const isProd = argv.mode === "production";
+  const shouldAnalyze = argv.env?.analyze === true;
   const port = Number(process.env.PORT) || 3000;
 
   // ============================================================================
@@ -75,9 +77,22 @@ module.exports = (_, argv) => {
   //   3. Webpack aliases point to dist/ in production mode
   //   4. Shell bundles everything together into apps/shell/dist/
   const getPackagePath = (packageName, useDist = USE_DIST) => {
-    return useDist
-      ? path.resolve(__dirname, `../../packages/${packageName}/dist`)
-      : path.resolve(__dirname, `../../packages/${packageName}/src`);
+    if (useDist) {
+      // TypeScript preserves directory structure, so dist files are at dist/packageName/src/
+      // Check if nested structure exists, otherwise fall back to dist/
+      const nestedPath = path.resolve(__dirname, `../../packages/${packageName}/dist/${packageName}/src`);
+      const flatPath = path.resolve(__dirname, `../../packages/${packageName}/dist`);
+      try {
+        // Check if nested index.js exists
+        if (require('fs').existsSync(path.join(nestedPath, 'index.js'))) {
+          return nestedPath;
+        }
+      } catch (e) {
+        // Fall through to flat path
+      }
+      return flatPath;
+    }
+    return path.resolve(__dirname, `../../packages/${packageName}/src`);
   };
 
   // Base aliases (always included)
@@ -162,6 +177,26 @@ module.exports = (_, argv) => {
         }
       ]
     },
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          // Vendor chunk: React, styled-components, react-router, etc.
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+          // Shared code between feature modules (design-system, types, etc.)
+          common: {
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true,
+          },
+        },
+      },
+    },
     plugins: [
       // Load environment variables from .env files
       // Automatically loads .env.production in production mode, .env in development
@@ -173,7 +208,17 @@ module.exports = (_, argv) => {
       }),
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, "public/index.html")
-      })
+      }),
+      // Bundle analyzer (only when --env analyze is passed)
+      ...(shouldAnalyze
+        ? [
+            new BundleAnalyzerPlugin({
+              analyzerMode: "static",
+              openAnalyzer: true,
+              reportFilename: "bundle-report.html",
+            }),
+          ]
+        : [])
     ]
   };
 };
