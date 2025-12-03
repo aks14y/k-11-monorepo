@@ -16,8 +16,7 @@ k11-monorepo/
 │   ├── k11-inbox/         # Inbox feature module
 │   ├── k11-monitoring/    # Monitoring feature module
 │   ├── types/             # Shared TypeScript types
-│   ├── utils/             # Shared utilities
-│   └── eslint-config/     # Shared ESLint configuration
+│   └── utils/             # Shared utilities
 ├── pnpm-workspace.yaml     # Workspace configuration
 ├── turbo.json             # TurboRepo task orchestration
 └── tsconfig.json          # Root TypeScript configuration
@@ -151,15 +150,7 @@ k11-monorepo/
 
 ---
 
-#### **packages/eslint-config/**
-**Purpose:** Shared ESLint configuration
-
-**Responsibilities:**
-- ✅ Common ESLint rules for the monorepo
-- ✅ Consistent code style across packages
-
-**Consumers:**
-- All packages via `extends` in their ESLint configs
+**Note:** ESLint configuration is managed via the root `.eslintrc.js` file, which all packages inherit automatically.
 
 ---
 
