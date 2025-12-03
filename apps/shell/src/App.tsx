@@ -46,7 +46,7 @@ const Dashboard = () => (
 
 
 export const App = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <BrowserRouter>
@@ -94,7 +94,7 @@ export const App = () => {
                             </Card>
                           }
                         >
-                          <InboxApp />
+                          <InboxApp userEmail={user?.email} />
                         </Suspense>
                       </ProtectedRoute>
                     }
@@ -117,7 +117,7 @@ export const App = () => {
                             </Card>
                           }
                         >
-                          <MonitoringApp />
+                          <MonitoringApp userEmail={user?.email} />
                         </Suspense>
                       </ProtectedRoute>
                     }

@@ -237,6 +237,7 @@ type Notification = {
 
 type InboxAppProps = {
   onNotificationClick?: (id: string) => void;
+  userEmail?: string;
 };
 
 const mockNotifications: Notification[] = Array.from({ length: 10 }, (_, i) => ({
@@ -256,7 +257,7 @@ const mockNotifications: Notification[] = Array.from({ length: 10 }, (_, i) => (
   status: "Report Generated"
 }));
 
-export const InboxApp = ({ onNotificationClick }: InboxAppProps) => {
+export const InboxApp = ({ onNotificationClick, userEmail }: InboxAppProps) => {
   const [filter, setFilter] = useState<"all" | "personal" | "system">("all");
   const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -287,6 +288,11 @@ export const InboxApp = ({ onNotificationClick }: InboxAppProps) => {
         <TitleSection>
           <Title>All ({totalNotifications})</Title>
           <Breadcrumb>Notification Queues ▸ All</Breadcrumb>
+          {userEmail && (
+            <Breadcrumb style={{ marginTop: "4px" }}>
+              Signed in as: {userEmail}
+            </Breadcrumb>
+          )}
         </TitleSection>
         <FilterSection>
           <FilterCheckbox>

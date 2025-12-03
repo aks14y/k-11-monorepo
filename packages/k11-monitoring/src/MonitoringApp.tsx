@@ -1,6 +1,12 @@
 import styled from "styled-components";
 import { Heading, Text, Stack } from "@design-system";
 
+const UserEmail = styled(Text)`
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text.muted};
+  margin-left: auto;
+`;
+
 const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.xl};
   background-color: ${({ theme }) => theme.colors.background};
@@ -137,9 +143,10 @@ const CardSubtitle = styled(Text)`
 
 type MonitoringAppProps = {
   onCardClick?: (cardType: "database" | "backup") => void;
+  userEmail?: string;
 };
 
-export const MonitoringApp = ({ onCardClick }: MonitoringAppProps) => {
+export const MonitoringApp = ({ onCardClick, userEmail }: MonitoringAppProps) => {
   return (
     <Container>
       <Header>
@@ -148,6 +155,7 @@ export const MonitoringApp = ({ onCardClick }: MonitoringAppProps) => {
           <div className="icon-overlay" />
         </HeaderIcon>
         <Title level={1}>Monitoring</Title>
+        {userEmail && <UserEmail variant="muted">Signed in as: {userEmail}</UserEmail>}
       </Header>
 
       <CardsContainer>
