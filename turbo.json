@@ -26,6 +26,16 @@
       "dependsOn": [
         "^typecheck"
       ]
+    },
+    "build:remote": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/remoteEntry.js",
+        "dist/**"
+      ],
+      "cache": true
     }
   }
 }

@@ -42,6 +42,18 @@
       ],
       "@types/*": [
         "packages/types/src/*"
+      ],
+      "plugin-registry": [
+        "packages/plugin-registry/src/index.ts"
+      ],
+      "plugin-registry/*": [
+        "packages/plugin-registry/src/*"
+      ],
+      "plugin-loader": [
+        "packages/plugin-loader/src/index.ts"
+      ],
+      "plugin-loader/*": [
+        "packages/plugin-loader/src/*"
       ]
     }
   },

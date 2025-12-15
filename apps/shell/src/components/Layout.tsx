@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Button, Stack } from "@design-system";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import type { Plugin } from "plugin-registry";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -40,12 +41,14 @@ type LayoutProps = {
   children: ReactNode;
   showInbox?: boolean;
   showMonitoring?: boolean;
+  plugins?: Plugin[];
 };
 
 export const Layout = ({
   children,
   showInbox = true,
-  showMonitoring = true
+  showMonitoring = true,
+  plugins = []
 }: LayoutProps) => {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -63,6 +66,13 @@ export const Layout = ({
           <Link to="/">Dashboard</Link>
           {showInbox && <Link to="/inbox">Inbox</Link>}
           {showMonitoring && <Link to="/monitoring">Monitoring</Link>}
+          {plugins
+            .filter((plugin) => plugin.enabled)
+            .map((plugin) => (
+              <Link key={plugin.id} to={plugin.route}>
+                {plugin.metadata.title}
+              </Link>
+            ))}
         </NavLinks>
         <Stack direction="row" gap="8px">
           {isAuthenticated ? (
