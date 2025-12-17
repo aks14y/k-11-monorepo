@@ -104,7 +104,7 @@ module.exports = {
       name: 'shell',
       remotes: {
         // Dynamic remotes loaded at runtime
-        // 'external-plugin': 'external_plugin@http://cdn.example.com/remoteEntry.js'
+        // Dynamic remotes loaded at runtime from Docker containers
       },
     }),
   ],
@@ -201,11 +201,7 @@ export const App = () => {
             <Layout plugins={plugins}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                {/* Internal modules (existing) */}
-                {ENABLE_K11_INBOX && InboxApp && (
-                  <Route path="/inbox" element={...} />
-                )}
-                {/* Dynamic external plugins */}
+                {/* All modules loaded dynamically from backend API */}
                 {routes.map(route => (
                   <Route key={route.path} {...route} />
                 ))}
@@ -231,11 +227,9 @@ export const Layout = ({ children, plugins }: LayoutProps) => {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Build navigation from plugins + internal modules
+  // Build navigation from plugins
   const navItems = [
     { path: '/', label: 'Dashboard' },
-    ...(ENABLE_K11_INBOX ? [{ path: '/inbox', label: 'Inbox' }] : []),
-    ...(ENABLE_K11_MONITORING ? [{ path: '/monitoring', label: 'Monitoring' }] : []),
     ...plugins
       .filter(p => p.enabled)
       .map(p => ({
@@ -426,13 +420,13 @@ Response: [
     "name": "External App",
     "route": "/external-app",
     "framework": "angular",
-    "entryUrl": "https://cdn.example.com/apps/external-app/main.js",
-    "manifestUrl": "https://cdn.example.com/apps/external-app/manifest.json",
+    "entryUrl": "https://external-app.example.com/main.js",
+    "manifestUrl": "https://external-app.example.com/manifest.json",
     "version": "1.0.0",
     "enabled": true,
     "metadata": {
       "title": "External Application",
-      "icon": "https://cdn.example.com/icons/app-icon.svg",
+      "icon": "https://external-app.example.com/icons/app-icon.svg",
       "description": "Third-party application"
     }
   }

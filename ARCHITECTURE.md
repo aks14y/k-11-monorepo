@@ -465,7 +465,7 @@ This production flow ensures that the final application is optimized, performant
         │  Deployment Target                 │
         │                                     │
         │  Options:                          │
-        │  ├── Static Hosting (CDN)          │
+        │  ├── Static Hosting                │
         │  │   - Vercel, Netlify, S3         │
         │  │   - Serve dist/ as static files │
         │  │                                 │
@@ -635,9 +635,9 @@ Lazy Loaded (On-Demand):
 - **Why**: Fast HMR in dev, optimized builds in prod
 - **How**: `USE_DIST` flag switches between `src/` and `dist/`
 
-### 5. Feature Flags
-- **Why**: Customer-specific builds, compile-time exclusion
-- **How**: `ENABLE_K11_INBOX`, `ENABLE_K11_MONITORING` env vars
+### 5. Dynamic Plugin Loading
+- **Why**: Customer-specific modules, runtime configuration
+- **How**: Backend API (`/api/plugins`) returns enabled modules dynamically
 
 ### 6. Fresh Builds Every Time
 - **Why**: Ensures consistency, avoids stale artifacts

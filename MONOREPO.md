@@ -82,7 +82,7 @@ k11-monorepo/
 - ✅ Notification queue UI (`InboxApp.tsx`)
 - ✅ Table with filtering, pagination, selection
 - ✅ Self-contained feature module
-- ✅ Can be conditionally included/excluded via `ENABLE_K11_INBOX` flag
+- ✅ Loaded dynamically at runtime from Docker containers
 
 **Dependencies:**
 - `@design-system` (for UI components)
@@ -104,7 +104,7 @@ k11-monorepo/
 - ✅ Monitoring dashboard UI (`MonitoringApp.tsx`)
 - ✅ Database and Backup monitoring cards
 - ✅ Self-contained feature module
-- ✅ Can be conditionally included/excluded via `ENABLE_K11_MONITORING` flag
+- ✅ Loaded dynamically at runtime from Docker containers
 
 **Dependencies:**
 - `@design-system` (for UI components)
@@ -200,20 +200,18 @@ k11-monorepo/
 
 ---
 
-## Feature Flags
+## Dynamic Module Loading
 
-Feature flags control compile-time inclusion/exclusion of feature modules:
+Modules are loaded dynamically at runtime from Docker containers:
 
-- `ENABLE_K11_INBOX` - Controls inbox module (default: `true`)
-- `ENABLE_K11_MONITORING` - Controls monitoring module (default: `true`)
-
-**Location:** `.env` (development) and `.env.production` (production)
+- Backend API (`/api/plugins`) returns enabled modules per customer
+- `ModuleFederationLoader` loads remotes dynamically
+- Only enabled modules are loaded and rendered
 
 **Effect:**
-- Webpack aliases are conditionally added
-- Routes are conditionally rendered
-- Navigation links are conditionally shown
-- Unused modules are not bundled
+- No compile-time inclusion/exclusion needed
+- Customer-specific module selection
+- Modules served from separate Docker containers
 
 ---
 
@@ -254,14 +252,10 @@ Defines workspace boundaries for pnpm.
 ## Environment Variables
 
 ### **Development (`.env`)**
-- `USE_DIST=false` - Use `src/` files
-- `ENABLE_K11_INBOX=true`
-- `ENABLE_K11_MONITORING=true`
-- `PORT=3000`
+- `USE_MOCK_PLUGINS=true` - Use mock plugins instead of API (optional)
 
 ### **Production (`.env.production`)**
-- `USE_DIST=true` - Use `dist/` files
-- Feature flags for customer-specific builds
+- No environment variables needed - uses backend API by default
 
 ---
 

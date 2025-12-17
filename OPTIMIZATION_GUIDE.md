@@ -69,29 +69,13 @@ apps/shell/dist/
 
 ### Environment-Based Builds
 
-**Development Build (`.env`):**
-```bash
-USE_DIST=false
-PORT=3000
-ENABLE_K11_INBOX=true
-ENABLE_K11_MONITORING=true
-```
+**Development:**
+- Uses `src/` for fast HMR
+- Uses mock plugins if `USE_MOCK_PLUGINS=true` in `.env`
 
-**Production Build (`.env.production`):**
-```bash
-USE_DIST=true
-ENABLE_K11_INBOX=true
-ENABLE_K11_MONITORING=true
-```
-
-**Custom Builds:**
-```bash
-# Customer A (all features)
-ENABLE_K11_INBOX=true ENABLE_K11_MONITORING=true pnpm build
-
-# Customer B (inbox only)
-ENABLE_K11_INBOX=true ENABLE_K11_MONITORING=false pnpm build
-```
+**Production:**
+- Uses `dist/` for optimized builds
+- Fetches plugins from backend API (`/api/plugins`)
 
 ---
 
@@ -169,22 +153,22 @@ import(/* webpackPrefetch: true */ "k11-inbox")
 2. Browser idle: Prefetches `k11-inbox` and `k11-monitoring` chunks
 3. User navigates: Chunks already downloaded, instant load
 
-### 4. Feature Flags (Compile-Time Exclusion)
+### 4. Dynamic Module Loading (Runtime)
 
 **Configuration:**
-```javascript
-const ENABLE_K11_INBOX = process.env.ENABLE_K11_INBOX !== "false";
-const ENABLE_K11_MONITORING = process.env.ENABLE_K11_MONITORING !== "false";
-```
+- Modules loaded dynamically at runtime from Docker containers
+- Backend API (`/api/plugins`) returns only enabled modules per customer
+- No unused code in shell bundle
 
 **What It Does:**
-- Conditionally includes/excludes modules at build time
-- Removes unused code from bundle
-- Enables customer-specific builds
+- Only loads modules that are enabled for the customer
+- Modules served from separate Docker containers
+- Enables customer-specific module selection
 
 **Impact:**
-- If `ENABLE_K11_INBOX=false`: Inbox module not bundled (saves 74 KB)
-- If `ENABLE_K11_MONITORING=false`: Monitoring module not bundled (saves 35 KB)
+- Shell bundle only contains core app code
+- Feature modules loaded on-demand
+- Smaller initial bundle size
 
 ### 5. Module Resolution Optimization
 
@@ -326,7 +310,7 @@ Modular architecture with lazy loading allows the application to scale without p
 ### 5. Cost Optimization
 
 **Problem Solved:**
-Large bundle sizes increase bandwidth costs and CDN expenses.
+Large bundle sizes increase bandwidth costs and hosting expenses.
 
 **Solution:**
 Smaller bundles and better caching reduce bandwidth usage.
@@ -338,7 +322,7 @@ Smaller bundles and better caching reduce bandwidth usage.
 - With separation: 67.5 GB/year
 - **Savings: 1.98 TB/year**
 
-**CDN Costs (AWS CloudFront @ $0.085/GB):**
+**Hosting Costs (example @ $0.085/GB):**
 - Without: 2.05 TB × $0.085 = **$174.25/year**
 - With: 67.5 GB × $0.085 = **$5.74/year**
 - **Savings: $168.51/year**
@@ -488,7 +472,7 @@ pnpm build:analyze
 The optimization techniques implemented in this repository provide significant long-term benefits:
 
 1. **Performance**: 50% faster load times, 4-6x faster rebuilds
-2. **Cost**: 96.7% bandwidth reduction, $168/year CDN savings
+2. **Cost**: 96.7% bandwidth reduction, $168/year hosting savings
 3. **Scalability**: Constant initial bundle size regardless of feature count
 4. **Developer Experience**: Near-instant feedback, better productivity
 5. **User Experience**: Faster interactions, better retention
