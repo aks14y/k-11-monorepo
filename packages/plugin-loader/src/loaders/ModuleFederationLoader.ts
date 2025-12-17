@@ -1,11 +1,15 @@
 /**
  * Module Federation Runtime Loader
- * 
- * Loads Module Federation remotes dynamically at runtime.
- * This allows remotes to be configured from backend API (like setup.xml in Angular)
- * instead of being hardcoded at build time.
- * 
- * Uses webpack's Container API for runtime remote loading.
+ *
+ * Loads Module Federation remotes dynamically at runtime using webpack's container API.
+ * This works with webpack's ModuleFederationPlugin sharing scope to ensure React is shared correctly.
+ *
+ * Uses webpack's built-in container API (not enhanced runtime) to:
+ * - Load remoteEntry.js scripts dynamically
+ * - Initialize containers with webpack's sharing scope
+ * - Load exposed modules from remote containers
+ *
+ * This ensures compatibility with webpack's ModuleFederationPlugin and proper React sharing.
  */
 
 // Type declarations for webpack Module Federation runtime
@@ -21,49 +25,111 @@ interface RemoteConfig {
 
 export class ModuleFederationLoader {
   private loadedContainers = new Map<string, Promise<any>>();
-  private initialized = false;
+  private sharingInitialized = false;
 
   /**
-   * Initialize Module Federation sharing scope
+   * Initialize webpack's sharing scope.
+   * This must be called before loading any remotes to ensure React is shared correctly.
    */
   private async initializeSharing(): Promise<void> {
-    if (this.initialized) {
+    if (this.sharingInitialized) {
       return;
     }
 
     if (typeof __webpack_init_sharing__ === "function") {
       await __webpack_init_sharing__("default");
     }
-    this.initialized = true;
+    this.sharingInitialized = true;
   }
 
   /**
-   * Load a Module Federation remote container dynamically at runtime
-   * 
-   * @param config Remote configuration
-   * @returns Promise that resolves to the remote container
+   * Load a remote container dynamically at runtime.
+   * Uses webpack's container API to ensure proper React sharing.
    */
-  async loadRemote(config: RemoteConfig): Promise<any> {
-    const { name, url, scope } = config;
-    const remoteScope = scope || name;
-    const remoteKey = `${remoteScope}@${url}`;
+  private async loadRemoteContainer(scope: string, url: string): Promise<any> {
+    await this.initializeSharing();
 
-    // Return cached promise if already loading/loaded
-    if (this.loadedContainers.has(remoteKey)) {
-      return this.loadedContainers.get(remoteKey)!;
+    // Check if container is already loaded
+    const globalScope = window as any;
+    const containerKey = scope;
+
+    if (globalScope[containerKey]) {
+      const container = globalScope[containerKey];
+      // Initialize with sharing scope
+      if (container.init && __webpack_share_scopes__?.default) {
+        await container.init(__webpack_share_scopes__.default);
+      }
+      return container;
     }
 
-    // Create promise to load remote
-    const loadPromise = this.loadRemoteContainer(remoteScope, url);
-    this.loadedContainers.set(remoteKey, loadPromise);
+    // Load the remoteEntry.js script
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = url;
+      script.type = "text/javascript";
+      script.async = true;
+      script.crossOrigin = "anonymous";
 
-    try {
-      return await loadPromise;
-    } catch (error) {
-      // Remove from cache on error so it can be retried
-      this.loadedContainers.delete(remoteKey);
-      throw error;
-    }
+      const timeout = setTimeout(() => {
+        script.remove();
+        reject(new Error(`Timeout loading remote script: ${url}`));
+      }, 30000);
+
+      script.onload = async () => {
+        clearTimeout(timeout);
+        
+        // Wait a bit for the container to be registered
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Try multiple possible container locations
+        let container = globalScope[containerKey] || 
+                        globalScope[`${containerKey}_container`] ||
+                        globalScope[scope];
+        
+        // If still not found, log available globals for debugging
+        if (!container) {
+          const availableGlobals = Object.keys(globalScope)
+            .filter(k => k.toLowerCase().includes(scope.toLowerCase()) || k.includes("Inbox") || k.includes("Monitoring"))
+            .slice(0, 10)
+            .join(", ");
+          
+          // eslint-disable-next-line no-console
+          console.warn(`[ModuleFederationLoader] Container ${scope} not found. Available globals:`, availableGlobals);
+          
+          reject(
+            new Error(
+              `Remote container ${scope} not found after loading ${url}. ` +
+              `Searched for: ${containerKey}, ${containerKey}_container, ${scope}. ` +
+              `Available globals: ${availableGlobals}`
+            )
+          );
+          return;
+        }
+
+        // Initialize container with webpack's sharing scope
+        try {
+          if (typeof container.init === "function" && __webpack_share_scopes__?.default) {
+            const initResult = container.init(__webpack_share_scopes__.default);
+            // Handle both Promise and non-Promise returns
+            if (initResult && typeof initResult === "object" && typeof initResult.then === "function") {
+              await initResult;
+            }
+            // If initResult is undefined or not a Promise, that's fine - init() might be synchronous
+          }
+          resolve(container);
+        } catch (err: any) {
+          reject(new Error(`Failed to initialize container ${scope}: ${err?.message || String(err)}`));
+        }
+      };
+
+      script.onerror = () => {
+        clearTimeout(timeout);
+        script.remove();
+        reject(new Error(`Failed to load remote script: ${url}`));
+      };
+
+      document.head.appendChild(script);
+    });
   }
 
   /**
@@ -74,126 +140,57 @@ export class ModuleFederationLoader {
    * @returns Promise that resolves to the module
    */
   async loadModule(config: RemoteConfig, modulePath: string): Promise<any> {
-    const container = await this.loadRemote(config);
-    
-    // Get the module factory from the container
-    const factory = await container.get(modulePath);
-    
-    if (!factory) {
-      throw new Error(
-        `Module ${modulePath} not found in remote ${config.name}`
-      );
+    const { name, url, scope } = config;
+    const remoteScope = scope || name;
+    const remoteKey = `${remoteScope}@${url}`;
+
+    // Return cached promise if already loading/loaded
+    if (this.loadedContainers.has(remoteKey)) {
+      const container = await this.loadedContainers.get(remoteKey)!;
+      const factory = await container.get(modulePath);
+      return factory();
     }
 
-    // Execute the factory to get the module
-    const Module = factory();
-    return Module;
-  }
+    // Load the container
+    const loadPromise = this.loadRemoteContainer(remoteScope, url);
+    this.loadedContainers.set(remoteKey, loadPromise);
 
-  /**
-   * Initialize and load a remote container
-   */
-  private async loadRemoteContainer(
-    scope: string,
-    url: string
-  ): Promise<any> {
-    // Initialize sharing scope
-    await this.initializeSharing();
-
-    // Load the remote script dynamically
-    const containerUrl = url;
-    const containerName = scope;
-
-    // Use webpack's container loading mechanism
-    // The remoteEntry.js exposes a global function that returns the container
-    return new Promise((resolve, reject) => {
-      // Check if already loaded in window
-      const globalScope = window as any;
+    try {
+      const container = await loadPromise;
       
-      // Module Federation creates a global with the pattern: [scope]_[hash]
-      // We need to find it or load it
-      const containerGlobal = `${containerName}_container`;
-      const containerGlobalAlt = containerName;
-
-      // If container is already loaded
-      if (globalScope[containerGlobal] || globalScope[containerGlobalAlt]) {
-        const container = globalScope[containerGlobal] || globalScope[containerGlobalAlt];
-        // Initialize the container with shared modules
-        if (container && container.init && __webpack_share_scopes__?.default) {
-          container.init(__webpack_share_scopes__.default);
-        }
-        resolve(container);
-        return;
+      // Get the module factory from the container
+      const factory = await container.get(modulePath);
+      
+      if (!factory) {
+        throw new Error(
+          `Module ${modulePath} not found in remote ${name}`
+        );
       }
 
-      // Load the remoteEntry.js script
-      const script = document.createElement("script");
-      script.src = containerUrl;
-      script.type = "text/javascript";
-      script.async = true;
-      script.crossOrigin = "anonymous";
+      // Execute the factory to get the module
+      const Module = factory();
+      
+      // Debug: log what we got
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log(`[ModuleFederationLoader] Loaded module from ${remoteScope}/${modulePath}:`, {
+          type: typeof Module,
+          isFunction: typeof Module === "function",
+          isObject: typeof Module === "object",
+          keys: typeof Module === "object" && Module !== null ? Object.keys(Module) : null,
+        });
+      }
 
-      const timeout = setTimeout(() => {
-        script.remove();
-        reject(new Error(`Timeout loading remote script: ${containerUrl}`));
-      }, 30000); // 30 second timeout
-
-      script.onload = () => {
-        clearTimeout(timeout);
-        try {
-          // Wait a bit for the global to be set
-          setTimeout(() => {
-            // Get the container from the global scope
-            // Module Federation sets it as window[scope] or window[scope + "_container"]
-            const container = globalScope[containerGlobal] || 
-                             globalScope[containerGlobalAlt] ||
-                             globalScope[scope];
-
-            if (!container) {
-              reject(
-                new Error(
-                  `Remote container ${containerName} not found after loading ${containerUrl}. ` +
-                  `Available globals: ${Object.keys(globalScope).filter(k => k.includes(containerName)).join(", ")}`
-                )
-              );
-              return;
-            }
-
-            // Initialize the container with shared modules
-            if (container.init && __webpack_share_scopes__?.default) {
-              container.init(__webpack_share_scopes__.default);
-            }
-
-            resolve(container);
-          }, 100);
-        } catch (error) {
-          clearTimeout(timeout);
-          reject(
-            new Error(
-              `Failed to initialize remote container ${containerName}: ${error instanceof Error ? error.message : String(error)}`
-            )
-          );
-        }
-      };
-
-      script.onerror = () => {
-        clearTimeout(timeout);
-        script.remove();
-        reject(
-          new Error(`Failed to load remote script: ${containerUrl}`)
-        );
-      };
-
-      document.head.appendChild(script);
-    });
-  }
-
-  /**
-   * Check if a remote is already loaded
-   */
-  isRemoteLoaded(name: string, url: string): boolean {
-    const remoteKey = `${name}@${url}`;
-    return this.loadedContainers.has(remoteKey);
+      return Module;
+    } catch (error: any) {
+      // Remove from cache on error so it can be retried
+      this.loadedContainers.delete(remoteKey);
+      throw new Error(
+        `Failed to load remote module ${modulePath} from ${name} at ${url}: ${
+          error?.message || String(error)
+        }`
+      );
+    }
   }
 }
 

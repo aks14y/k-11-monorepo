@@ -1,0 +1,47 @@
+[
+  {
+    "id": "k11-inbox",
+    "name": "Inbox",
+    "route": "/inbox",
+    "framework": "react",
+    "entryUrl": "http://localhost:3001/remoteEntry.js",
+    "remoteName": "k11Inbox",
+    "modulePath": "./InboxApp",
+    "enabled": true,
+    "metadata": {
+      "title": "Notification Inbox",
+      "icon": "inbox",
+      "description": "View and manage notifications."
+    }
+  },
+  {
+    "id": "k11-monitoring",
+    "name": "Monitoring",
+    "route": "/monitoring",
+    "framework": "react",
+    "entryUrl": "http://localhost:3002/remoteEntry.js",
+    "remoteName": "k11Monitoring",
+    "modulePath": "./MonitoringApp",
+    "enabled": true,
+    "metadata": {
+      "title": "System Monitoring",
+      "icon": "monitor",
+      "description": "Live monitoring dashboards."
+    }
+  },
+  {
+    "id": "legacy-erp",
+    "name": "Legacy ERP",
+    "route": "/legacy-erp",
+    "framework": "html",
+    "entryUrl": "https://legacy.example.com/app/",
+    "enabled": true,
+    "metadata": {
+      "title": "Legacy ERP",
+      "icon": "building",
+      "description": "Embedded legacy ERP via iframe."
+    }
+  }
+]
+
+

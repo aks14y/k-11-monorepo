@@ -18,8 +18,12 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@module-federation/enhanced": "^0.21.6",
+    "@module-federation/error-codes": "^0.21.6",
+    "@module-federation/runtime": "^0.21.6",
+    "@module-federation/runtime-core": "^0.21.6",
+    "@module-federation/runtime-tools": "^0.21.6",
+    "@module-federation/sdk": "^0.21.6",
     "plugin-registry": "workspace:*"
   }
 }
-
-

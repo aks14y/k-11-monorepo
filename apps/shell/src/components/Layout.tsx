@@ -39,15 +39,11 @@ const Main = styled.main`
 
 type LayoutProps = {
   children: ReactNode;
-  showInbox?: boolean;
-  showMonitoring?: boolean;
   plugins?: Plugin[];
 };
 
 export const Layout = ({
   children,
-  showInbox = true,
-  showMonitoring = true,
   plugins = []
 }: LayoutProps) => {
   const { isAuthenticated, logout } = useAuth();
@@ -64,8 +60,6 @@ export const Layout = ({
         <strong>Shell Host</strong>
         <NavLinks>
           <Link to="/">Dashboard</Link>
-          {showInbox && <Link to="/inbox">Inbox</Link>}
-          {showMonitoring && <Link to="/monitoring">Monitoring</Link>}
           {plugins
             .filter((plugin) => plugin.enabled)
             .map((plugin) => (

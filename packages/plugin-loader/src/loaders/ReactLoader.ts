@@ -6,21 +6,19 @@ export class ReactLoader {
   private mfLoader = new ModuleFederationLoader();
 
   async load(plugin: Plugin): Promise<LoadedReactPlugin> {
-    // Check if this is a Module Federation remote
     if (plugin.remoteName && plugin.entryUrl) {
       return this.loadModuleFederationRemote(plugin);
     }
 
-    // Fallback: Try direct import (for non-MF remotes)
     try {
-    const mod = await import(/* webpackIgnore: true */ plugin.entryUrl);
-    const component = mod.default ?? mod.App ?? mod.Component;
+      const mod = await import(/* webpackIgnore: true */ plugin.entryUrl);
+      const component = mod.default ?? mod.App ?? mod.Component;
 
-    if (!component) {
-      throw new Error(`React plugin did not export a component: ${plugin.name}`);
-    }
+      if (!component) {
+        throw new Error(`React plugin did not export a component: ${plugin.name}`);
+      }
 
-    return { kind: "react", component };
+      return { kind: "react", component };
     } catch (error) {
       throw new Error(
         `Failed to load React plugin ${plugin.name}: ${error instanceof Error ? error.message : String(error)}`
@@ -49,18 +47,55 @@ export class ReactLoader {
         {
           name: remoteName,
           url: entryUrl,
-          module: module,
         },
         module
       );
 
-      // Extract the component
-      const component =
-        Module.default ?? Module.App ?? Module.Component ?? Module;
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log(`[ReactLoader] Module from ${remoteName}:`, {
+          type: typeof Module,
+          isFunction: typeof Module === "function",
+          isObject: typeof Module === "object",
+          keys: typeof Module === "object" && Module !== null ? Object.keys(Module) : null,
+          hasDefault: Module && typeof Module === "object" && "default" in Module,
+        });
+      }
+
+      let component: any = null;
+
+      if (typeof Module === "function") {
+        component = Module;
+      } else if (Module && typeof Module === "object") {
+        const moduleName = module.replace(/^.\//, "");
+        component = 
+          Module.default ?? 
+          Module[moduleName] ??  // Try exact match (e.g., Module["InboxApp"])
+          Module.App ?? 
+          Module.Component ?? 
+          Module.InboxApp ?? 
+          Module.MonitoringApp;
+      }
 
       if (!component) {
+        const availableKeys = Module && typeof Module === "object" ? Object.keys(Module).join(", ") : "N/A";
         throw new Error(
-          `Module Federation remote ${remoteName} did not export a component at ${module}`
+          `Module Federation remote ${remoteName} did not export a valid React component at ${module}. ` +
+          `Got: ${typeof Module}, available keys: ${availableKeys}`
+        );
+      }
+
+      if (typeof component !== "function") {
+        if (component && typeof component === "object" && component.$$typeof) {
+          throw new Error(
+            `Module Federation remote ${remoteName} exported a React element instead of a component. ` +
+            `You need to export the component function/class, not render it.`
+          );
+        }
+        throw new Error(
+          `Module Federation remote ${remoteName} exported invalid component type: ${typeof component}. ` +
+          `Expected function (component), got: ${typeof component}. ` +
+          `Available keys: ${Module && typeof Module === "object" ? Object.keys(Module).join(", ") : "N/A"}`
         );
       }
 
@@ -72,5 +107,4 @@ export class ReactLoader {
     }
   }
 }
-
 
