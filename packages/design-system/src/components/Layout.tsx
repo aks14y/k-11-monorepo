@@ -1,36 +1,42 @@
-import { ReactNode } from "react";
-import styled from "styled-components";
+import * as React from "react";
+import { Stack as MantineStack, StackProps as MantineStackProps, Paper } from "@mantine/core";
+import styles from "./Layout.module.css";
 
-const StackContainer = styled.div<{ $gap?: string; $direction?: "row" | "column" }>`
-  display: flex;
-  flex-direction: ${({ $direction }) => $direction ?? "column"};
-  gap: ${({ $gap, theme }) => $gap ?? theme.spacing.md};
-`;
-
-type StackProps = {
-  children: ReactNode;
+interface StackProps extends Omit<MantineStackProps, "gap"> {
   gap?: string;
   direction?: "row" | "column";
-};
+}
 
-export const Stack = ({ children, gap, direction }: StackProps) => (
-  <StackContainer $gap={gap} $direction={direction}>
-    {children}
-  </StackContainer>
+const Stack = React.forwardRef<HTMLDivElement, StackProps>(
+  ({ gap, direction = "column", className, ...props }, ref) => {
+    // Convert gap string to number if it's a number string
+    const gapValue = gap && /^\d+$/.test(gap) ? parseInt(gap, 10) : gap || "md";
+    
+    const combinedClassName = direction === "row" 
+      ? `${styles.stackRow} ${className || ""}`.trim()
+      : className;
+    
+    return (
+      <MantineStack
+        ref={ref}
+        gap={gapValue}
+        className={combinedClassName}
+        {...props}
+      />
+    );
+  }
 );
+Stack.displayName = "Stack";
 
-const PageSectionRoot = styled.section`
-  padding: ${({ theme }) => theme.spacing.lg};
-  background-color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radii.md};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-`;
+interface PageSectionProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-type PageSectionProps = {
-  children: ReactNode;
-};
-
-export const PageSection = ({ children }: PageSectionProps) => (
-  <PageSectionRoot>{children}</PageSectionRoot>
+const PageSection = React.forwardRef<HTMLDivElement, PageSectionProps>(
+  ({ className, children, ...props }, ref) => (
+    <Paper ref={ref} p="md" radius="md" withBorder className={className} {...props}>
+      {children}
+    </Paper>
+  )
 );
+PageSection.displayName = "PageSection";
 
+export { Stack, PageSection };

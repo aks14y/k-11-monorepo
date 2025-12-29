@@ -1,45 +1,42 @@
-import { ReactNode } from "react";
-import styled from "styled-components";
+import * as React from "react";
+import { Title, Text as MantineText, TextProps as MantineTextProps } from "@mantine/core";
 
-type HeadingProps = {
-  level?: 1 | 2 | 3 | 4;
-  children: ReactNode;
-};
+type HeadingLevel = 1 | 2 | 3 | 4;
 
-const headingSizes = {
-  1: "xl",
-  2: "lg",
-  3: "md",
-  4: "sm"
-} as const;
+interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  level?: HeadingLevel;
+}
 
-const HeadingBase = styled.h1<{ $level: number }>`
-  margin: 0 0 ${({ theme }) => theme.spacing.md};
-  font-size: ${({ theme, $level }) =>
-    theme.typography.fontSizes[headingSizes[$level as 1 | 2 | 3 | 4]]};
-  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
-  line-height: ${({ theme }) => theme.typography.lineHeights.tight};
-`;
-
-export const Heading = ({ level = 2, children }: HeadingProps) => (
-  <HeadingBase as={`h${level}` as const} $level={level}>
-    {children}
-  </HeadingBase>
+const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
+  ({ level = 2, children, ...props }, ref) => {
+    const order = level as 1 | 2 | 3 | 4 | 5 | 6;
+    return (
+      <Title ref={ref} order={order} {...props}>
+        {children}
+      </Title>
+    );
+  }
 );
+Heading.displayName = "Heading";
 
-type TextProps = {
-  variant?: "muted" | "default" | "inverse";
-  children: ReactNode;
-};
+interface TextProps extends Omit<MantineTextProps, "c"> {
+  variant?: "default" | "muted" | "inverse";
+  // Explicitly allow children to avoid JSX inference issues
+  children?: React.ReactNode;
+}
 
-const TextBase = styled.p<{ $variant: TextProps["variant"] }>`
-  margin: 0 0 ${({ theme }) => theme.spacing.sm};
-  color: ${({ theme, $variant }) => theme.colors.text[$variant ?? "default"]};
-  font-size: ${({ theme }) => theme.typography.fontSizes.md};
-  line-height: ${({ theme }) => theme.typography.lineHeights.normal};
-`;
+const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
+  ({ variant = "default", ...props }, ref) => {
+    let color: MantineTextProps["c"] = undefined;
+    if (variant === "muted") {
+      color = "dimmed";
+    } else if (variant === "inverse") {
+      color = "white";
+    }
 
-export const Text = ({ variant = "default", children }: TextProps) => (
-  <TextBase $variant={variant}>{children}</TextBase>
+    return <MantineText ref={ref} c={color} {...props} />;
+  }
 );
+Text.displayName = "Text";
 
+export { Heading, Text };

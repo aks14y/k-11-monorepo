@@ -1,0 +1,148 @@
+.container {
+  padding: 32px;
+  background-color: var(--background);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.userEmail {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.filterLabel input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.searchWrapper {
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  max-width: 400px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.tableHeader {
+  width: 50px;
+}
+
+.tableHeaderStatus {
+  width: 80px;
+}
+
+.tableHeaderTime {
+  width: 220px;
+}
+
+.tableHeaderSource {
+  width: 150px;
+}
+
+.tableHeaderType {
+  width: 100px;
+}
+
+.tableHeaderStatusCol {
+  width: 180px;
+}
+
+.tableHeaderAction {
+  width: 80px;
+}
+
+.tableHeaderSortable {
+  cursor: pointer;
+}
+
+.tableHeaderSortable:hover {
+  background-color: var(--border);
+  opacity: 0.7;
+}
+
+.sortableHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationRight {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.pageSizeSelect {
+  width: 80px;
+}
+
+.subjectLink {
+  color: #3B82F6;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.subjectLink:hover {
+  text-decoration: underline;
+}

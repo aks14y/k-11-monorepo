@@ -11,14 +11,14 @@ export class ReactLoader {
     }
 
     try {
-      const mod = await import(/* webpackIgnore: true */ plugin.entryUrl);
-      const component = mod.default ?? mod.App ?? mod.Component;
+    const mod = await import(/* webpackIgnore: true */ plugin.entryUrl);
+    const component = mod.default ?? mod.App ?? mod.Component;
 
-      if (!component) {
-        throw new Error(`React plugin did not export a component: ${plugin.name}`);
-      }
+    if (!component) {
+      throw new Error(`React plugin did not export a component: ${plugin.name}`);
+    }
 
-      return { kind: "react", component };
+    return { kind: "react", component };
     } catch (error) {
       throw new Error(
         `Failed to load React plugin ${plugin.name}: ${error instanceof Error ? error.message : String(error)}`

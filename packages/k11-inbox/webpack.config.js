@@ -15,9 +15,6 @@ module.exports = (_, argv) => {
       path: path.resolve(__dirname, "dist"),
       filename: "[name].js",
       library: { type: "var", name: "k11Inbox" },
-      // Don't clean - preserve TypeScript output for local bundling
-      // Webpack outputs: remoteEntry.js, main.js, chunks
-      // TypeScript outputs: index.js, index.d.ts (for local bundling)
       clean: false,
       publicPath: "auto",
     },
@@ -33,6 +30,7 @@ module.exports = (_, argv) => {
       extensions: [".tsx", ".ts", ".jsx", ".js"],
       alias: {
         "@design-system": path.resolve(__dirname, "../../packages/design-system/src"),
+        "api-client": path.resolve(__dirname, "../../packages/api-client/src"),
       },
       modules: [
         path.resolve(__dirname, "node_modules"),
@@ -61,8 +59,26 @@ module.exports = (_, argv) => {
           },
         },
         {
+          test: /\.module\.css$/,
+          use: [
+            "style-loader",
+            {
+              loader: "css-loader",
+              options: {
+                modules: {
+                  localIdentName: "[local]--[hash:base64:5]",
+                },
+              },
+            },
+          ],
+        },
+        {
           test: /\.css$/,
-          use: ["style-loader", "css-loader"],
+          exclude: /\.module\.css$/,
+          use: [
+            "style-loader",
+            "css-loader",
+          ],
         },
       ],
     },
@@ -77,18 +93,51 @@ module.exports = (_, argv) => {
           react: {
             singleton: true,
             requiredVersion: packagePkg.peerDependencies.react,
-            eager: false,  // Consume from host, don't provide eagerly
+            eager: false,
           },
           "react-dom": {
             singleton: true,
             requiredVersion: packagePkg.peerDependencies["react-dom"],
-            eager: false,  // Consume from host, don't provide eagerly
+            eager: false,
           },
-          "styled-components": {
+          "@design-system": {
             singleton: true,
-            requiredVersion: packagePkg.peerDependencies["styled-components"],
-            eager: false,  // Consume from host, don't provide eagerly
+            eager: false,
           },
+          "api-client": {
+            singleton: true,
+            eager: false,
+          },
+          "@tanstack/react-query": {
+            singleton: true,
+            eager: false,
+          },
+          "@tanstack/query-core": {
+            singleton: true,
+            eager: false,
+          },
+          "@mantine/core": { singleton: true, eager: false },
+          "@mantine/hooks": { singleton: true, eager: false },
+          "@floating-ui/core": { singleton: true, eager: false },
+          "@floating-ui/react": { singleton: true, eager: false },
+          "@floating-ui/react-dom": { singleton: true, eager: false },
+          "@floating-ui/utils": { singleton: true, eager: false },
+          "@floating-ui/dom": { singleton: true, eager: false },
+          "react-number-format": { singleton: true, eager: false },
+          "react-textarea-autosize": { singleton: true, eager: false },
+          "@babel/runtime": { singleton: true, eager: false },
+          "use-latest": { singleton: true, eager: false },
+          "use-composed-ref": { singleton: true, eager: false },
+          "use-isomorphic-layout-effect": { singleton: true, eager: false },
+          "tabbable": { singleton: true, eager: false },
+          "scheduler": { singleton: true, eager: false },
+          "react-remove-scroll": { singleton: true, eager: false },
+          "react-remove-scroll-bar": { singleton: true, eager: false },
+          "react-style-singleton": { singleton: true, eager: false },
+          "get-nonce": { singleton: true, eager: false },
+          "detect-node-es": { singleton: true, eager: false },
+          "use-callback-ref": { singleton: true, eager: false },
+          "use-sidecar": { singleton: true, eager: false },
         },
       }),
       new HtmlWebpackPlugin({

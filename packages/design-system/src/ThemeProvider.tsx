@@ -1,34 +1,18 @@
-import React ,{ ReactNode } from "react";
-import { ThemeProvider as SCThemeProvider, createGlobalStyle } from "styled-components";
-import { theme } from "./design-tokens";
-
-const GlobalStyles = createGlobalStyle`
-  :root {
-    font-family: ${theme.typography.fontFamily};
-    background-color: ${theme.colors.background};
-    color: ${theme.colors.text.default};
-  }
-
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background-color: ${theme.colors.background};
-  }
-`;
+import { ReactNode } from "react";
+// ThemeProvider is a no-op component kept for backward compatibility
+// With Mantine, theming is handled via MantineProvider in bootstrap.tsx
+// This component is kept for API compatibility
 
 type ThemeProviderProps = {
   children: ReactNode;
 };
 
-export const ThemeProvider = ({ children }: ThemeProviderProps) => (
-  <SCThemeProvider theme={theme}>
-    <GlobalStyles />
-    {children}
-  </SCThemeProvider>
-);
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  // Pass-through component for backward compatibility
+  // MantineProvider handles theming via Mantine's theme system
+  return <>{children}</>;
+};
 
-export { theme };
+// Export design tokens for reference
+export { theme } from "./design-tokens";
 

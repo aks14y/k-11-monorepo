@@ -1,450 +1,366 @@
-import { useState } from "react";
-import styled from "styled-components";
-import { Card, Button, Stack, Heading, Text } from "@design-system";
+import { useState, useMemo } from "react";
+import { Table, Checkbox, Pagination, ActionIcon, Badge, TextInput, Select, Loader, Text } from "@mantine/core";
+import styles from "./InboxApp.module.css";
+import { useNotifications, useMarkNotificationAsRead, useDeleteNotification } from "./hooks/useNotifications";
 
-const Container = styled.div`
-  padding: ${({ theme }) => theme.spacing.xl};
-  background-color: ${({ theme }) => theme.colors.background};
-  min-height: 100vh;
-`;
+// Simple icon components
+const ChevronUp = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+    <path d="M8 4l-4 4h8l-4-4z" />
+  </svg>
+);
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-`;
+const ChevronDown = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+    <path d="M8 12l4-4H4l4 4z" />
+  </svg>
+);
 
-const TitleSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
-  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.text.default};
-`;
-
-const Breadcrumb = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text.muted};
-`;
-
-const FilterSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-`;
-
-const FilterCheckbox = styled.label`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text.default};
-  cursor: pointer;
-  
-  input[type="checkbox"] {
-    cursor: pointer;
-  }
-`;
-
-const IconButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: ${({ theme }) => theme.spacing.xs};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${({ theme }) => theme.colors.text.default};
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.surface};
-    border-radius: ${({ theme }) => theme.radii.sm};
-  }
-`;
-
-const TableContainer = styled(Card)`
-  padding: 0;
-  overflow: hidden;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TableHeader = styled.thead`
-  background-color: ${({ theme }) => theme.colors.surface};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-`;
-
-const TableHeaderCell = styled.th`
-  padding: ${({ theme }) => theme.spacing.md};
-  text-align: left;
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeights.semibold};
-  color: ${({ theme }) => theme.colors.text.default};
-  
-  &:first-child {
-    padding-left: ${({ theme }) => theme.spacing.lg};
-  }
-  
-  &:last-child {
-    padding-right: ${({ theme }) => theme.spacing.lg};
-  }
-`;
-
-const TableBody = styled.tbody``;
-
-const TableRow = styled.tr`
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.surface};
-  }
-  
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const TableCell = styled.td`
-  padding: ${({ theme }) => theme.spacing.md};
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text.default};
-  
-  &:first-child {
-    padding-left: ${({ theme }) => theme.spacing.lg};
-  }
-  
-  &:last-child {
-    padding-right: ${({ theme }) => theme.spacing.lg};
-  }
-`;
-
-const CheckboxCell = styled(TableCell)`
-  width: 40px;
-`;
-
-const IconCell = styled(TableCell)`
-  width: 40px;
-  color: ${({ theme }) => theme.colors.primary};
-`;
-
-const TimeCell = styled(TableCell)`
-  white-space: nowrap;
-  color: ${({ theme }) => theme.colors.text.muted};
-`;
-
-const SourceCell = styled(TableCell)`
-  font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
-`;
-
-const TypeIcon = styled.div<{ type: "info" | "warning" | "error" }>`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme, type }) => 
-    type === "info" ? theme.colors.primary : 
-    type === "warning" ? theme.colors.warning : 
-    theme.colors.error
-  };
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-`;
-
-const SubjectLink = styled.a`
-  color: ${({ theme }) => theme.colors.primary};
-  text-decoration: none;
-  cursor: pointer;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const StatusBadge = styled.span`
-  display: inline-block;
-  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
-  background-color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radii.sm};
-  font-size: ${({ theme }) => theme.typography.fontSizes.xs};
-  color: ${({ theme }) => theme.colors.text.default};
-`;
-
-const PaginationContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: ${({ theme }) => theme.spacing.lg};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  background-color: ${({ theme }) => theme.colors.surface};
-`;
-
-const PaginationInfo = styled.span`
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text.muted};
-`;
-
-const PaginationControls = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-const PaginationButton = styled.button<{ active?: boolean }>`
-  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background-color: ${({ theme, active }) => 
-    active ? theme.colors.primary : theme.colors.surface
-  };
-  color: ${({ theme, active }) => 
-    active ? theme.colors.text.inverse : theme.colors.text.default
-  };
-  border-radius: ${({ theme }) => theme.radii.sm};
-  cursor: pointer;
-  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
-  
-  &:hover:not(:disabled) {
-    background-color: ${({ theme, active }) => 
-      active ? theme.colors.primaryDark : theme.colors.surface
-    };
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-type Notification = {
-  id: string;
-  time: string;
-  source: string;
-  type: "info" | "warning" | "error";
-  subject: string;
-  status: string;
-};
+const MenuIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor">
+    <path d="M2 4h12v1H2V4zm0 3h12v1H2V7zm0 3h12v1H2v-1z" />
+  </svg>
+);
 
 type InboxAppProps = {
   onNotificationClick?: (id: string) => void;
   userEmail?: string;
+  shellData?: {
+    authToken: string | null;
+    csrfToken: string | null;
+    userEmail: string | null;
+    hostUrl: string | null;
+  };
 };
 
-const mockNotifications: Notification[] = Array.from({ length: 10 }, (_, i) => ({
-  id: `notif-${i + 1}`,
-  time: new Date(Date.now() - i * 10000).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZoneName: "short"
-  }),
-  source: "Reports",
-  type: "info" as const,
-  subject: "Report Generated -testscheulder",
-  status: "Report Generated"
-}));
+type SortField = 'time' | 'source' | 'type' | 'subject' | 'status' | null;
+type SortDirection = 'asc' | 'desc' | null;
 
-export const InboxApp = ({ onNotificationClick, userEmail }: InboxAppProps) => {
+export const InboxApp = ({ onNotificationClick, userEmail, shellData }: InboxAppProps) => {
   const [filter, setFilter] = useState<"all" | "personal" | "system">("all");
-  const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 7;
-  const totalNotifications = 330;
+  const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedNotifications(new Set(mockNotifications.map(n => n.id)));
+  // Use React Query to fetch notifications
+  const {
+    data: notificationsData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useNotifications({
+    page: currentPage,
+    pageSize,
+    search: searchQuery || undefined,
+    filter: filter !== "all" ? filter : undefined,
+    sortField: sortField || undefined,
+    sortDirection: sortDirection || undefined,
+  });
+
+  // Mutations for marking as read and deleting
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const deleteMutation = useDeleteNotification();
+
+  // Extract data from query response
+  const notifications = notificationsData?.notifications || [];
+  const totalNotifications = notificationsData?.total || 0;
+  const totalPages = Math.ceil(totalNotifications / pageSize);
+
+  // For now, use the notifications directly (API handles pagination/filtering/sorting)
+  // If API doesn't handle client-side filtering, you can add it back here
+  const paginatedNotifications = notifications;
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection('asc');
+      }
     } else {
-      setSelectedNotifications(new Set());
+      setSortField(field);
+      setSortDirection('asc');
     }
   };
 
-  const handleSelectNotification = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedNotifications);
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(new Set(paginatedNotifications.map((n) => n.id)));
+    } else {
+      setSelectedRows(new Set());
+    }
+  };
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedRows);
     if (checked) {
       newSelected.add(id);
     } else {
       newSelected.delete(id);
     }
-    setSelectedNotifications(newSelected);
+    setSelectedRows(newSelected);
   };
 
+  const isAllSelected = paginatedNotifications.length > 0 && paginatedNotifications.every((n) => selectedRows.has(n.id));
+  const isSomeSelected = paginatedNotifications.some((n) => selectedRows.has(n.id));
+
+  const getStatusBadge = (type: "info" | "warning" | "error") => {
+    const colors = {
+      info: 'blue',
+      warning: 'yellow',
+      error: 'red',
+    };
+    return (
+      <Badge color={colors[type]} variant="filled" size="sm">
+        i
+      </Badge>
+    );
+  };
+
+  // Show loading state
+  if (isLoading && notifications.length === 0) {
+    return (
+      <div className={styles.container}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
+          <Loader size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (isError && notifications.length === 0) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to load notifications";
+    return (
+      <div className={styles.container}>
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <Text c="red" size="lg" fw={500}>Error loading notifications</Text>
+          <Text c="dimmed" size="sm" mt="xs">{errorMessage}</Text>
+          <button
+            onClick={() => refetch()}
+            style={{
+              marginTop: "16px",
+              padding: "8px 16px",
+              cursor: "pointer",
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Container>
-      <Header>
-        <TitleSection>
-          <Title>All ({totalNotifications})</Title>
-          <Breadcrumb>Notification Queues ▸ All</Breadcrumb>
-          {userEmail && (
-            <Breadcrumb style={{ marginTop: "4px" }}>
-              Signed in as: {userEmail}
-            </Breadcrumb>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.titleBlock}>
+          <h1 className={styles.title}>
+            All ({totalNotifications})
+          </h1>
+          <div className={styles.breadcrumb}>Notification Queues ▸ All</div>
+          {(userEmail || shellData?.userEmail) && (
+            <div className={styles.userEmail}>
+              Signed in as: {userEmail || shellData?.userEmail}
+            </div>
           )}
-        </TitleSection>
-        <FilterSection>
-          <FilterCheckbox>
+        </div>
+        <div className={styles.filters}>
+          <label className={styles.filterLabel}>
             <input
               type="checkbox"
               checked={filter === "all"}
               onChange={() => setFilter("all")}
             />
             All
-          </FilterCheckbox>
-          <FilterCheckbox>
+          </label>
+          <label className={styles.filterLabel}>
             <input
               type="checkbox"
               checked={filter === "personal"}
               onChange={() => setFilter("personal")}
             />
             Personal
-          </FilterCheckbox>
-          <FilterCheckbox>
+          </label>
+          <label className={styles.filterLabel}>
             <input
               type="checkbox"
               checked={filter === "system"}
               onChange={() => setFilter("system")}
             />
             System
-          </FilterCheckbox>
-          <IconButton aria-label="Refresh">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z"/>
-              <path d="M8 3.5a.5.5 0 0 0-.5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1H8.5V4a.5.5 0 0 0-.5-.5z"/>
-            </svg>
-          </IconButton>
-          <IconButton aria-label="Menu">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 4h12v1H2V4zm0 3h12v1H2V7zm0 3h12v1H2v-1z"/>
-            </svg>
-          </IconButton>
-        </FilterSection>
-      </Header>
+          </label>
+        </div>
+      </div>
 
-      <TableContainer>
-        <Table>
-          <TableHeader>
-            <tr>
-              <TableHeaderCell>
-                <input
-                  type="checkbox"
-                  checked={selectedNotifications.size === mockNotifications.length}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
+      <div className={styles.searchWrapper}>
+        <TextInput
+          placeholder="Search notifications..."
+          value={searchQuery}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setSearchQuery(e.currentTarget.value);
+            setCurrentPage(1);
+          }}
+          className={styles.searchInput}
+        />
+      </div>
+
+      <div className={styles.tableWrapper}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th className={styles.tableHeader}>
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={isSomeSelected && !isAllSelected}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectAll(e.currentTarget.checked)}
                 />
-              </TableHeaderCell>
-              <TableHeaderCell>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <circle cx="8" cy="8" r="7" stroke="currentColor" fill="none"/>
-                  <text x="8" y="11" textAnchor="middle" fontSize="10" fill="currentColor">?</text>
-                </svg>
-              </TableHeaderCell>
-              <TableHeaderCell>Time</TableHeaderCell>
-              <TableHeaderCell>Source</TableHeaderCell>
-              <TableHeaderCell>Type</TableHeaderCell>
-              <TableHeaderCell>Subject</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
-              <TableHeaderCell>Action</TableHeaderCell>
-            </tr>
-          </TableHeader>
-          <TableBody>
-            {mockNotifications.map((notification) => (
-              <TableRow key={notification.id}>
-                <CheckboxCell>
-                  <input
-                    type="checkbox"
-                    checked={selectedNotifications.has(notification.id)}
-                    onChange={(e) => handleSelectNotification(notification.id, e.target.checked)}
+              </Table.Th>
+              <Table.Th className={styles.tableHeaderStatus}>Status</Table.Th>
+              <Table.Th
+                className={`${styles.tableHeaderTime} ${styles.tableHeaderSortable}`}
+                onClick={() => handleSort('time')}
+              >
+                <div className={styles.sortableHeader}>
+                  Time
+                  {sortField === 'time' && (
+                    sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                  )}
+                </div>
+              </Table.Th>
+              <Table.Th
+                className={`${styles.tableHeaderSource} ${styles.tableHeaderSortable}`}
+                onClick={() => handleSort('source')}
+              >
+                <div className={styles.sortableHeader}>
+                  Source
+                  {sortField === 'source' && (
+                    sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                  )}
+                </div>
+              </Table.Th>
+              <Table.Th
+                className={`${styles.tableHeaderType} ${styles.tableHeaderSortable}`}
+                onClick={() => handleSort('type')}
+              >
+                <div className={styles.sortableHeader}>
+                  Type
+                  {sortField === 'type' && (
+                    sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                  )}
+                </div>
+              </Table.Th>
+              <Table.Th
+                className={styles.tableHeaderSortable}
+                onClick={() => handleSort('subject')}
+              >
+                <div className={styles.sortableHeader}>
+                  Subject
+                  {sortField === 'subject' && (
+                    sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                  )}
+                </div>
+              </Table.Th>
+              <Table.Th
+                className={`${styles.tableHeaderStatusCol} ${styles.tableHeaderSortable}`}
+                onClick={() => handleSort('status')}
+              >
+                <div className={styles.sortableHeader}>
+                  Status
+                  {sortField === 'status' && (
+                    sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                  )}
+                </div>
+              </Table.Th>
+              <Table.Th className={styles.tableHeaderAction}>Action</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {isLoading ? (
+              <Table.Tr>
+                <Table.Td colSpan={8} style={{ textAlign: "center", padding: "40px" }}>
+                  <Loader size="sm" />
+                </Table.Td>
+              </Table.Tr>
+            ) : paginatedNotifications.length === 0 ? (
+              <Table.Tr>
+                <Table.Td colSpan={8} style={{ textAlign: "center", padding: "40px" }}>
+                  <Text c="dimmed">No notifications found</Text>
+                </Table.Td>
+              </Table.Tr>
+            ) : (
+              paginatedNotifications.map((notification) => (
+              <Table.Tr key={notification.id}>
+                <Table.Td>
+                  <Checkbox
+                    checked={selectedRows.has(notification.id)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectRow(notification.id, e.currentTarget.checked)}
                   />
-                </CheckboxCell>
-                <IconCell>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M8 0a8 8 0 1 0 8 8A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z"/>
-                    <path d="M8 3.5a.5.5 0 0 0-.5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1H8.5V4a.5.5 0 0 0-.5-.5z"/>
-                  </svg>
-                </IconCell>
-                <TimeCell>{notification.time}</TimeCell>
-                <SourceCell>{notification.source}</SourceCell>
-                <TableCell>
-                  <TypeIcon type={notification.type}>i</TypeIcon>
-                </TableCell>
-                <TableCell>
-                  <SubjectLink
+                </Table.Td>
+                <Table.Td>{getStatusBadge(notification.type)}</Table.Td>
+                <Table.Td>{notification.time}</Table.Td>
+                <Table.Td>{notification.source}</Table.Td>
+                <Table.Td>
+                  <Badge variant="light" size="sm">
+                    {notification.type}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <a
                     href="#"
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                       e.preventDefault();
                       onNotificationClick?.(notification.id);
                     }}
+                    className={styles.subjectLink}
                   >
                     {notification.subject}
-                  </SubjectLink>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge>{notification.status}</StatusBadge>
-                </TableCell>
-                <TableCell>
-                  <IconButton aria-label="Actions">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M2 4h12v1H2V4zm0 3h12v1H2V7zm0 3h12v1H2v-1z"/>
-                    </svg>
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+                  </a>
+                </Table.Td>
+                <Table.Td>{notification.status}</Table.Td>
+                <Table.Td>
+                  <ActionIcon variant="subtle" size="sm">
+                    <MenuIcon size={16} />
+                  </ActionIcon>
+                </Table.Td>
+              </Table.Tr>
+            ))
+            )}
+          </Table.Tbody>
         </Table>
-        <PaginationContainer>
-          <PaginationInfo>Page: {currentPage}/{totalPages}</PaginationInfo>
-          <PaginationControls>
-            <PaginationButton
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-            >
-              First
-            </PaginationButton>
-            <PaginationButton
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </PaginationButton>
-            {[1, 2, 3, 4, 5].map((page) => (
-              <PaginationButton
-                key={page}
-                active={currentPage === page}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </PaginationButton>
-            ))}
-            {totalPages > 5 && <span>...</span>}
-            <PaginationButton
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </PaginationButton>
-            <PaginationButton
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-            >
-              Last
-            </PaginationButton>
-          </PaginationControls>
-        </PaginationContainer>
-      </TableContainer>
-    </Container>
+      </div>
+
+      <div className={styles.paginationContainer}>
+        <div className={styles.paginationLeft}>
+          <span>Rows per page:</span>
+          <Select
+            value={pageSize.toString()}
+            onChange={(value: string | null) => {
+              if (value) {
+                setPageSize(Number(value));
+                setCurrentPage(1);
+              }
+            }}
+            data={['10', '20', '50', '100']}
+            className={styles.pageSizeSelect}
+          />
+        </div>
+        <Pagination
+          total={totalPages}
+          value={currentPage}
+          onChange={setCurrentPage}
+        />
+        <div className={styles.paginationRight}>
+          Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalNotifications)} of {totalNotifications} notifications
+        </div>
+      </div>
+    </div>
   );
 };
-

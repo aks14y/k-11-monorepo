@@ -24,14 +24,10 @@ const fs = require("fs");
 const shellNodeModules = path.resolve(__dirname, "node_modules");
 
 module.exports = (_, argv) => {
-  // Check both argv.mode and argv.env.production for production mode
-  // argv.mode is set by --mode production
-  // argv.env.production is set by --env production
   const isProd = argv.mode === "production" || argv.env?.production === true;
   const shouldAnalyze = argv.env?.analyze === true;
   const port = Number(process.env.PORT) || 3000;
   
-  // Load environment-specific .env file if it exists
   const envPath = isProd 
     ? path.resolve(__dirname, ".env.production")
     : path.resolve(__dirname, ".env");
@@ -39,39 +35,25 @@ module.exports = (_, argv) => {
     dotenv.config({ path: envPath, override: true });
   }
 
-  // ============================================================================
-  // BUILD CONFIGURATION
-  // ============================================================================
-  // Automatically use dist/ in production, src/ in development
   const shouldUseDist = isProd;
   
-  // Debug logging
   console.log("[Webpack Config] Mode:", argv.mode || "undefined", "| env.production:", argv.env?.production, "| isProd:", isProd);
   console.log("[Webpack Config] Using:", shouldUseDist ? "dist/" : "src/");
-
-  // ============================================================================
-  // ALIAS CONFIGURATION
-  // ============================================================================
   const getPackagePath = (packageName, useDist = shouldUseDist) => {
     const srcPath = path.resolve(__dirname, `../../packages/${packageName}/src`);
     
     if (useDist) {
-      // TypeScript preserves directory structure, so dist files are at dist/packageName/src/
-      // Check if nested structure exists, otherwise fall back to dist/
       const nestedPath = path.resolve(__dirname, `../../packages/${packageName}/dist/${packageName}/src`);
       const flatPath = path.resolve(__dirname, `../../packages/${packageName}/dist`);
       
-      // Check if nested index.js exists
       if (fs.existsSync(path.join(nestedPath, 'index.js'))) {
         return nestedPath;
       }
       
-      // Check if flat dist/index.js exists
       if (fs.existsSync(path.join(flatPath, 'index.js'))) {
         return flatPath;
       }
       
-      // If dist doesn't exist, fall back to src (for packages that haven't been built yet)
       if (!fs.existsSync(flatPath)) {
         return srcPath;
       }
@@ -81,22 +63,18 @@ module.exports = (_, argv) => {
     return srcPath;
   };
 
-  // Base aliases (always included)
   const aliases = {
     react: path.resolve(shellNodeModules, "react"),
     "react-dom": path.resolve(shellNodeModules, "react-dom"),
-    "styled-components": path.resolve(shellNodeModules, "styled-components"),
     "react/jsx-runtime": path.resolve(shellNodeModules, "react/jsx-runtime.js"),
     "react/jsx-dev-runtime": path.resolve(shellNodeModules, "react/jsx-dev-runtime.js"),
     "@design-system": getPackagePath("design-system"),
     "@types": getPackagePath("types"),
+    "api-client": getPackagePath("api-client"),
     "plugin-registry": getPackagePath("plugin-registry"),
     "plugin-loader": getPackagePath("plugin-loader"),
   };
 
-  // ============================================================================
-  // WEBPACK CONFIG
-  // ============================================================================
   return {
     entry: path.resolve(__dirname, "src/bootstrap.tsx"),
     output: {
@@ -110,17 +88,17 @@ module.exports = (_, argv) => {
     devServer: {
       port,
       historyApiFallback: {
-        // Don't fallback to index.html for .json files
         disableDotRule: false,
         htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
       },
       hot: true,
     },
     resolve: {
-      extensions: [".tsx", ".ts", ".jsx", ".js"],
+      extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs"],
       modules: [shellNodeModules, "node_modules"],
       alias: aliases,
-      symlinks: false
+      symlinks: false,
+      conditionNames: ["import", "require", "default"]
     },
     externals: {},
     module: {
@@ -128,11 +106,11 @@ module.exports = (_, argv) => {
         {
           test: /\.(ts|tsx|js|jsx)$/,
           exclude: (modulePath) => {
-            // Exclude node_modules but allow workspace packages
             if (modulePath.includes("node_modules")) {
               const allowedPackages = [
                 "@design-system",
                 "@types",
+                "api-client",
                 "plugin-registry",
                 "plugin-loader"
               ];
@@ -153,8 +131,26 @@ module.exports = (_, argv) => {
           }
         },
         {
+          test: /\.module\.css$/,
+          use: [
+            "style-loader",
+            {
+              loader: "css-loader",
+              options: {
+                modules: {
+                  localIdentName: "[local]--[hash:base64:5]",
+                },
+              },
+            },
+          ],
+        },
+        {
           test: /\.css$/,
-          use: ["style-loader", "css-loader"]
+          exclude: /\.module\.css$/,
+          use: [
+            "style-loader",
+            "css-loader",
+          ],
         }
       ]
     },
@@ -166,6 +162,12 @@ module.exports = (_, argv) => {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             priority: 10,
+            reuseExistingChunk: true,
+          },
+          mantine: {
+            test: /[\\/]node_modules[\\/]@mantine[\\/]/,
+            name: 'vendors',
+            priority: 15,
             reuseExistingChunk: true,
           },
           common: {
@@ -191,11 +193,44 @@ module.exports = (_, argv) => {
             requiredVersion: shellPkg.dependencies["react-dom"],
             eager: true
           },
-          "styled-components": { 
-            singleton: true, 
-            requiredVersion: shellPkg.dependencies["styled-components"],
+          "@design-system": {
+            singleton: true,
             eager: true
           },
+          "api-client": {
+            singleton: true,
+            eager: true
+          },
+          "@tanstack/react-query": {
+            singleton: true,
+            eager: true
+          },
+          "@tanstack/query-core": {
+            singleton: true,
+            eager: true
+          },
+          "@mantine/core": { singleton: true, eager: true },
+          "@mantine/hooks": { singleton: true, eager: true },
+          "@floating-ui/core": { singleton: true, eager: true },
+          "@floating-ui/react": { singleton: true, eager: true },
+          "@floating-ui/react-dom": { singleton: true, eager: true },
+          "@floating-ui/utils": { singleton: true, eager: true },
+          "@floating-ui/dom": { singleton: true, eager: true },
+          "react-number-format": { singleton: true, eager: true },
+          "react-textarea-autosize": { singleton: true, eager: true },
+          "@babel/runtime": { singleton: true, eager: true },
+          "use-latest": { singleton: true, eager: true },
+          "use-composed-ref": { singleton: true, eager: true },
+          "use-isomorphic-layout-effect": { singleton: true, eager: true },
+          "tabbable": { singleton: true, eager: true },
+          "scheduler": { singleton: true, eager: true },
+          "react-remove-scroll": { singleton: true, eager: true },
+          "react-remove-scroll-bar": { singleton: true, eager: true },
+          "react-style-singleton": { singleton: true, eager: true },
+          "get-nonce": { singleton: true, eager: true },
+          "detect-node-es": { singleton: true, eager: true },
+          "use-callback-ref": { singleton: true, eager: true },
+          "use-sidecar": { singleton: true, eager: true },
         },
       }),
       new Dotenv({

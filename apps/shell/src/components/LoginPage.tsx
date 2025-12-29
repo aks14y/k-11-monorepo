@@ -1,49 +1,46 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import { Card, Heading, Text, Stack, Button, Input } from "@design-system";
 import { useAuth } from "../context/AuthContext";
-
-const Container = styled.div`
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
-  padding: ${({ theme }) => theme.spacing.lg};
-`;
-
-const StyledCard = styled(Card)`
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
-`;
+import styles from "./LoginPage.module.css";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
-  const { login } = useAuth();
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (email.trim()) {
-      login(email.trim());
+    if (!email.trim() || !password.trim()) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await login(email.trim(), password.trim());
       navigate("/");
+    } catch (err) {
+      // Error is already set in AuthContext
+      console.error("[LoginPage] Login failed:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Container>
-      <StyledCard>
+    <div className={styles.loginPage}>
+      <Card className={styles.card}>
         <Stack gap="16px">
           <Heading level={2}>Sign In</Heading>
-          <Text variant="muted">Please enter your email to continue.</Text>
-          <Form onSubmit={handleSubmit}>
+          <Text variant="muted">Please enter your credentials to continue.</Text>
+          {error && (
+            <Text variant="muted" style={{ color: "var(--error, #d32f2f)" }}>
+              {error}
+            </Text>
+          )}
+          <form onSubmit={handleSubmit} className={styles.form}>
             <Input
               type="email"
               placeholder="Enter your email"
@@ -51,14 +48,26 @@ export const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
+              disabled={loading || isSubmitting}
             />
-            <Button type="submit" variant="primary">
-              Sign In
+            <Input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading || isSubmitting}
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading || isSubmitting}
+            >
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
-          </Form>
+          </form>
         </Stack>
-      </StyledCard>
-    </Container>
+      </Card>
+    </div>
   );
 };
-

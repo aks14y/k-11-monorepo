@@ -39,16 +39,16 @@ const MOCK_PLUGINS: Plugin[] = [
     },
   },
   {
-    id: "legacy-erp",
-    name: "Legacy ERP",
-    route: "/legacy-erp",
-    framework: "html",
-    entryUrl: "https://legacy.example.com/app/",
+    id: "client-module",
+    name: "Client Module",
+    route: "/client-module",
+    framework: "angular",
+    entryUrl: "https://demos.creative-tim.com/material-dashboard-angular2/#/dashboard",
     enabled: true,
     metadata: {
-      title: "Legacy ERP",
+      title: "Client Module",
       icon: "building",
-      description: "Embedded legacy ERP via iframe.",
+      description: "Embedded client Angular application via iframe.",
     },
   },
 ];
@@ -73,9 +73,9 @@ export class PluginRegistry {
     const endpoint = options.endpoint ?? "/api/plugins";
 
     try {
-      const response = await fetch(endpoint);
+    const response = await fetch(endpoint);
 
-      if (!response.ok) {
+    if (!response.ok) {
         throw new Error(`Failed to fetch plugins: ${response.status} ${response.statusText}`);
       }
 
@@ -86,9 +86,9 @@ export class PluginRegistry {
         throw new Error(
           `Expected JSON but got ${contentType || "unknown"}. Response: ${text.substring(0, 200)}`
         );
-      }
+    }
 
-      const data = (await response.json()) as Plugin[];
+    const data = (await response.json()) as Plugin[];
       const enabledPlugins = data.filter((plugin) => plugin.enabled);
       
       // eslint-disable-next-line no-console

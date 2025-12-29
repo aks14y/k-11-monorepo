@@ -23,12 +23,15 @@ const Dashboard = () => (
 );
 
 export const App = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loadingPlugins, setLoadingPlugins] = useState(true);
   const [pluginsError, setPluginsError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only fetch plugins after auth check is complete
+    if (authLoading) return;
+
     const registry = new PluginRegistry();
     registry
       .fetchPlugins()
@@ -41,7 +44,19 @@ export const App = () => {
         setPluginsError(err.message);
         setLoadingPlugins(false);
       });
-  }, []);
+  }, [authLoading]);
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <Card>
+        <Stack gap="16px">
+          <Heading level={2}>Loading…</Heading>
+          <Text variant="muted">Checking authentication status.</Text>
+        </Stack>
+      </Card>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -85,7 +100,7 @@ export const App = () => {
                             </Card>
                           }
                         >
-                          <DynamicRoute plugin={plugin} />
+                          <DynamicRoute plugin={plugin} userEmail={user?.email} />
                         </Suspense>
                       </ProtectedRoute>
                     }

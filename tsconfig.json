@@ -54,6 +54,12 @@
       ],
       "plugin-loader/*": [
         "packages/plugin-loader/src/*"
+      ],
+      "api-client": [
+        "packages/api-client/src/index.ts"
+      ],
+      "api-client/*": [
+        "packages/api-client/src/*"
       ]
     }
   },
