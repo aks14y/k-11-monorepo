@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { Table, Checkbox, Pagination, ActionIcon, Badge, TextInput, Select, Loader, Text } from "@mantine/core";
+import { Table, Checkbox, Pagination, ActionIcon, Badge, TextInput, Select, Loader, Text, Card, Stack, Button } from "@mantine/core";
 import styles from "./InboxApp.module.css";
-import { useNotifications, useMarkNotificationAsRead, useDeleteNotification } from "./hooks/useNotifications";
+import { useNotifications, useMarkNotificationAsRead, useDeleteNotification, useQueues } from "./hooks/useNotifications";
 
 // Simple icon components
 const ChevronUp = ({ size = 16 }: { size?: number }) => (
@@ -64,6 +64,10 @@ export const InboxApp = ({ onNotificationClick, userEmail, shellData }: InboxApp
   // Mutations for marking as read and deleting
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteMutation = useDeleteNotification();
+
+  // Fetch queues (automatically called on mount)
+  const { data: queuesData, isLoading: queuesLoading, error: queuesError, refetch: refetchQueues } = useQueues();
+  const [showQueues, setShowQueues] = useState(true); // Show queues by default on mount
 
   // Extract data from query response
   const notifications = notificationsData?.notifications || [];
@@ -172,6 +176,15 @@ export const InboxApp = ({ onNotificationClick, userEmail, shellData }: InboxApp
             </div>
           )}
         </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
+          <Button
+            variant="light"
+            size="sm"
+            onClick={() => setShowQueues(!showQueues)}
+          >
+            {showQueues ? "Hide" : "Show"} Queues ({queuesData?.queues.length || 0})
+          </Button>
+        </div>
         <div className={styles.filters}>
           <label className={styles.filterLabel}>
             <input
@@ -199,6 +212,64 @@ export const InboxApp = ({ onNotificationClick, userEmail, shellData }: InboxApp
           </label>
         </div>
       </div>
+
+      {/* Queues Section */}
+      {showQueues && (
+        <Card style={{ marginBottom: "16px", padding: "16px" }}>
+          <Stack gap="12px">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Text fw={600} size="lg">Notification Queues</Text>
+              <Button
+                variant="subtle"
+                size="xs"
+                onClick={() => refetchQueues()}
+                loading={queuesLoading}
+              >
+                Refresh
+              </Button>
+            </div>
+            {queuesLoading ? (
+              <Loader size="sm" />
+            ) : queuesError ? (
+              <Text c="red" size="sm">
+                Error loading queues: {queuesError instanceof Error ? queuesError.message : "Unknown error"}
+              </Text>
+            ) : queuesData?.queues && queuesData.queues.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {queuesData.queues.map((queue) => (
+                  <Card
+                    key={queue.id}
+                    style={{
+                      padding: "12px",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      // You can add queue selection logic here
+                      console.log("Selected queue:", queue);
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <Text fw={500}>{queue.name}</Text>
+                        <Text size="xs" c="dimmed">
+                          {queue.type} • {queue.companyName}
+                        </Text>
+                      </div>
+                      <Badge variant="light" color={queue.type === "internal" ? "blue" : "green"}>
+                        {queue.type}
+                      </Badge>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Text c="dimmed" size="sm">No queues found</Text>
+            )}
+          </Stack>
+        </Card>
+      )}
 
       <div className={styles.searchWrapper}>
         <TextInput

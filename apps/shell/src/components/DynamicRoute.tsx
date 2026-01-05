@@ -1,8 +1,8 @@
 import { Suspense, useEffect, useState, useRef, useMemo } from "react";
 import { Card, Stack, Heading, Text } from "@design-system";
-import type { Plugin } from "plugin-registry";
-import { PluginLoader } from "plugin-loader";
-import type { LoadedPlugin } from "plugin-loader";
+import type { Plugin } from "@plugin-registry";
+import { PluginLoader } from "@plugin-loader";
+import type { LoadedPlugin } from "@plugin-loader";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext, type ShellData } from "../context/AppContext";
 import styles from "./DynamicRoute.module.css";

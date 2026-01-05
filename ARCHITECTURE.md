@@ -27,24 +27,44 @@ POC-Monorepo/
 │       └── package.json
 │
 ├── packages/
-│   ├── design-system/           # Shared UI Components
+│   ├── design-system/           # Shared UI Components (@design-system)
 │   │   ├── src/
 │   │   │   ├── components/      # Button, Card, Input, etc.
 │   │   │   ├── design-tokens.ts # Colors, spacing, typography
 │   │   │   └── ThemeProvider.tsx
 │   │   └── dist/                # Compiled output
 │   │
-│   ├── k11-inbox/               # Inbox Feature Module
+│   ├── api-client/              # Shared API Client (@api-client)
 │   │   ├── src/
-│   │   │   └── InboxApp.tsx    # Feature component
-│   │   └── dist/               # Compiled output
+│   │   │   ├── apiConfig.ts     # API configuration & fetching
+│   │   │   └── index.ts
+│   │   └── dist/                # Compiled output
 │   │
-│   ├── k11-monitoring/          # Monitoring Feature Module
+│   ├── plugin-registry/         # Plugin Registry (@plugin-registry)
+│   │   ├── src/
+│   │   │   ├── PluginRegistry.ts # Plugin fetching logic
+│   │   │   └── types.ts
+│   │   └── dist/                # Compiled output
+│   │
+│   ├── plugin-loader/           # Plugin Loader (@plugin-loader)
+│   │   ├── src/
+│   │   │   ├── PluginLoader.ts  # Dynamic module loading
+│   │   │   └── loaders/         # React, Angular, HTML loaders
+│   │   └── dist/                # Compiled output
+│   │
+│   ├── k11-inbox/               # Inbox Feature Module (@k11-inbox)
+│   │   ├── src/
+│   │   │   ├── InboxApp.tsx     # Feature component
+│   │   │   ├── services/        # API services
+│   │   │   └── hooks/           # React Query hooks
+│   │   └── dist/                # Compiled output
+│   │
+│   ├── k11-monitoring/          # Monitoring Feature Module (@k11-monitoring)
 │   │   ├── src/
 │   │   │   └── MonitoringApp.tsx
-│   │   └── dist/               # Compiled output
+│   │   └── dist/                # Compiled output
 │   │
-│   ├── types/                   # Shared TypeScript Types
+│   ├── types/                   # Shared TypeScript Types (@types)
 │   │   └── src/
 │   │       └── index.ts        # AuthUser, etc.
 │   │
@@ -72,13 +92,19 @@ The `apps/` directory contains the main application that users interact with. Cu
 **Packages Directory (`packages/`):**
 The `packages/` directory contains reusable code that can be shared across applications. Each package is an independent module with its own `src/` and `dist/` directories:
 
-- **`design-system/`**: A shared UI component library providing reusable React components like Button, Card, Input, Modal, and other design elements. It also includes design tokens (colors, spacing, typography) and a ThemeProvider for consistent styling across the application.
+- **`@design-system/`**: A shared UI component library providing reusable React components like Button, Card, Input, Modal, and other design elements. It also includes design tokens (colors, spacing, typography) and a ThemeProvider for consistent styling across the application.
 
-- **`k11-inbox/`**: A feature module that implements the inbox/notification functionality. It exports an `InboxApp` component that can be lazy-loaded by the shell application.
+- **`@api-client/`**: A shared package for making API calls with automatic CSRF and authentication token handling. Provides `apiFetch()` function that automatically includes necessary headers and manages sessionStorage for token persistence.
 
-- **`k11-monitoring/`**: A feature module that implements monitoring dashboard functionality. It exports a `MonitoringApp` component that can be lazy-loaded by the shell application.
+- **`@plugin-registry/`**: Manages fetching plugin configurations from a backend API or mock data. Handles plugin discovery and filtering based on enabled status.
 
-- **`types/`**: Shared TypeScript type definitions used across packages and applications. This ensures type consistency and enables better IDE support and compile-time error checking.
+- **`@plugin-loader/`**: Handles dynamic loading of plugins at runtime using Module Federation. Supports React, Angular, and HTML plugins with appropriate loaders for each framework type.
+
+- **`@k11-inbox/`**: A feature module that implements the inbox/notification functionality. It exports an `InboxApp` component that can be lazy-loaded by the shell application. Uses React Query for data fetching and caching.
+
+- **`@k11-monitoring/`**: A feature module that implements monitoring dashboard functionality. It exports a `MonitoringApp` component that can be lazy-loaded by the shell application.
+
+- **`@types/`**: Shared TypeScript type definitions used across packages and applications. This ensures type consistency and enables better IDE support and compile-time error checking.
 
 - **`utils/`**: Shared utility functions and helpers that can be used across different packages and applications.
 
@@ -106,32 +132,49 @@ This structure enables code sharing, independent development of feature modules,
         │                    │                    │
         ▼                    ▼                    ▼
 ┌───────────────┐   ┌──────────────┐   ┌──────────────┐
-│ design-system │   │  k11-inbox   │   │k11-monitoring│
-│  (Shared UI)  │   │  (Feature)   │   │  (Feature)   │
+│ @design-system │   │  @k11-inbox   │   │@k11-monitoring│
+│  (Shared UI)   │   │  (Feature)    │   │  (Feature)    │
 └───────┬───────┘   └──────┬───────┘   └──────┬───────┘
         │                  │                  │
         │                  │                  │
         └──────────────────┴──────────────────┘
                            │
-                           ▼
-                    ┌──────────────┐
-                    │    @types    │
-                    │  (Types)     │
-                    └──────────────┘
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+        ▼                  ▼                  ▼
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  @api-client  │   │@plugin-registry│ │@plugin-loader│
+│  (API Utils)  │   │  (Plugin Mgmt) │ │ (Module Load) │
+└──────────────┘   └──────┬─────────┘ └──────┬───────┘
+                          │                  │
+                          └────────┬─────────┘
+                                   │
+                                   ▼
+                            ┌──────────────┐
+                            │    @types    │
+                            │  (Types)     │
+                            └──────────────┘
 ```
 
 ### Dependency Details
 
 **Shell App Dependencies:**
-- `design-system` → UI components (Button, Card, Input, etc.)
-- `k11-inbox` → Inbox feature (lazy loaded)
-- `k11-monitoring` → Monitoring feature (lazy loaded)
-- `types` → Shared TypeScript types
+- `@design-system` → UI components (Button, Card, Input, etc.)
+- `@api-client` → API fetching with automatic token handling
+- `@plugin-registry` → Plugin configuration fetching
+- `@plugin-loader` → Dynamic module loading (Module Federation)
+- `@k11-inbox` → Inbox feature (lazy loaded via Module Federation)
+- `@k11-monitoring` → Monitoring feature (lazy loaded via Module Federation)
+- `@types` → Shared TypeScript types
+- `@tanstack/react-query` → Data fetching and caching
 
 **Feature Modules Dependencies:**
-- `design-system` → For UI components
-- `types` → For type definitions
-- `react`, `react-dom`, `styled-components` → Peer dependencies
+- `@design-system` → For UI components
+- `@api-client` → For API calls with automatic token handling
+- `@types` → For type definitions
+- `react`, `react-dom` → Peer dependencies
+- `@tanstack/react-query` → For data fetching and caching
+- `@mantine/core`, `@mantine/hooks` → UI component library (peer dependencies)
 
 ---
 
@@ -159,11 +202,14 @@ This structure enables code sharing, independent development of feature modules,
         │  Level 1 (No deps):                 │
         │  ├── @design-system ✅              │
         │  ├── @types ✅                      │
+        │  ├── @api-client ✅                 │
         │  └── utils ✅                       │
         │                                     │
         │  Level 2 (After Level 1):          │
-        │  ├── k11-inbox ✅                   │
-        │  └── k11-monitoring ✅              │
+        │  ├── @plugin-registry ✅            │
+        │  ├── @plugin-loader ✅              │
+        │  ├── @k11-inbox ✅                  │
+        │  └── @k11-monitoring ✅             │
         │                                     │
         │  Level 3 (After Level 2):          │
         │  └── shell ✅                       │
@@ -189,9 +235,9 @@ When a build is initiated (via `pnpm build`), TurboRepo first analyzes the entir
 **Step 2: Parallel Package Building**
 Once the dependency graph is established, TurboRepo builds packages in parallel where possible, respecting dependency constraints. The build process is organized into levels:
 
-- **Level 1 (No Dependencies)**: Packages that don't depend on other workspace packages are built first. This includes `design-system` (shared UI components), `types` (TypeScript definitions), and `utils` (utility functions). These can all be built simultaneously since they have no internal dependencies.
+- **Level 1 (No Dependencies)**: Packages that don't depend on other workspace packages are built first. This includes `@design-system` (shared UI components), `@types` (TypeScript definitions), `@api-client` (API utilities), and `utils` (utility functions). These can all be built simultaneously since they have no internal dependencies.
 
-- **Level 2 (Depends on Level 1)**: After Level 1 packages complete, feature modules like `k11-inbox` and `k11-monitoring` are built. These packages depend on `design-system` and `types` from Level 1, so they must wait for those to complete. However, `k11-inbox` and `k11-monitoring` can be built in parallel since they don't depend on each other.
+- **Level 2 (Depends on Level 1)**: After Level 1 packages complete, `@plugin-registry` and `@plugin-loader` are built (they depend on `@api-client` and `@types`). Then feature modules like `@k11-inbox` and `@k11-monitoring` are built. These packages depend on `@design-system`, `@api-client`, and `@types` from Level 1, so they must wait for those to complete. However, `@k11-inbox` and `@k11-monitoring` can be built in parallel since they don't depend on each other.
 
 - **Level 3 (Depends on Level 2)**: Finally, the `shell` application is built. It depends on all previous packages, so it must wait for all feature modules and shared packages to complete their builds.
 
@@ -200,7 +246,7 @@ Each package's build process involves TypeScript compilation (`tsc`), which tran
 **Step 3: Output Generation**
 After all packages are built, the shell application's webpack configuration bundles everything together. Webpack processes the shell's source code along with the compiled outputs from all packages, creating optimized production bundles. The final output in `apps/shell/dist/` includes:
 - `index.html`: The main HTML file that loads the application
-- `vendors.[hash].js`: A separate chunk containing all third-party dependencies (React, React Router, styled-components, etc.)
+- `vendors.[hash].js`: A separate chunk containing all third-party dependencies (React, React Router, Mantine UI, React Query, etc.)
 - `main.[hash].js`: The main application code including the shell app, routing logic, and shared components
 - Feature chunks: Separate JavaScript files for lazy-loaded feature modules (e.g., `k11-inbox.[hash].js`, `k11-monitoring.[hash].js`)
 
@@ -252,6 +298,9 @@ This build architecture ensures that:
         │  Source Files (TypeScript)           │
         │  ├── apps/shell/src/                 │
         │  ├── packages/design-system/src/     │
+        │  ├── packages/api-client/src/        │
+        │  ├── packages/plugin-registry/src/   │
+        │  ├── packages/plugin-loader/src/     │
         │  ├── packages/k11-inbox/src/         │
         │  └── packages/k11-monitoring/src/    │
         └───────────────────────────────────┘
@@ -370,11 +419,15 @@ TurboRepo acts as the build orchestrator, reading the `turbo.json` configuration
 **Step 1: Package Compilation**
 Before the shell application can be bundled, all workspace packages must be compiled from TypeScript source to JavaScript. This step happens in parallel where possible, but respects dependency order:
 
-- **`design-system`**: TypeScript files in `src/` are compiled to JavaScript in `dist/`. This includes all UI components, design tokens, and the ThemeProvider. The compiled output maintains the directory structure and includes both JavaScript files and TypeScript declaration files for type support.
+- **`@design-system`**: TypeScript files in `src/` are compiled to JavaScript in `dist/`. This includes all UI components, design tokens, and the ThemeProvider. The compiled output maintains the directory structure and includes both JavaScript files and TypeScript declaration files for type support.
 
-- **`k11-inbox`**: The inbox feature module is compiled, transforming `InboxApp.tsx` and related files from TypeScript to JavaScript. The compiled output is placed in `dist/` and can be imported by the shell application.
+- **`@api-client`**: API configuration and fetching utilities are compiled to JavaScript. This package provides shared API functionality used by both the shell and feature modules.
 
-- **`k11-monitoring`**: Similarly, the monitoring feature module is compiled, creating JavaScript outputs from TypeScript sources.
+- **`@plugin-registry`** and **`@plugin-loader`**: These packages are compiled to provide plugin management and dynamic loading capabilities.
+
+- **`@k11-inbox`**: The inbox feature module is compiled and built as a Module Federation remote. It includes React Query hooks for data fetching and services for API calls. The compiled output is placed in `dist/` and exposed as a remote entry point.
+
+- **`@k11-monitoring`**: Similarly, the monitoring feature module is compiled and built as a Module Federation remote, creating JavaScript outputs from TypeScript sources.
 
 - **`types`** and **`utils`**: Shared packages are also compiled to ensure type definitions and utility functions are available in their compiled form.
 
@@ -386,7 +439,9 @@ Once all packages are compiled, webpack bundles the shell application. The webpa
 **Module Resolution with `USE_DIST=true`**: In production mode, webpack's module resolution is configured to use compiled `dist/` outputs instead of source files. This is controlled by the `USE_DIST` environment variable, which is automatically set to `true` in production builds. Webpack aliases point to `packages/*/dist/` directories, ensuring the bundled application uses optimized, compiled code rather than raw TypeScript source.
 
 **Webpack Processing**:
-- **Code Splitting**: Webpack separates code into multiple chunks. Vendor dependencies (React, React Router, styled-components) are placed in a separate `vendors.js` chunk. This separation allows browsers to cache vendor code separately from application code, improving cache efficiency.
+- **Code Splitting**: Webpack separates code into multiple chunks. Vendor dependencies (React, React Router, Mantine UI, React Query) are placed in a separate `vendors.js` chunk. This separation allows browsers to cache vendor code separately from application code, improving cache efficiency.
+
+- **Module Federation**: Feature modules (`@k11-inbox`, `@k11-monitoring`) are built as Module Federation remotes, allowing them to be loaded dynamically at runtime. The shell acts as the host, loading remote modules on-demand.
 
 - **Lazy Loading**: Feature modules like `k11-inbox` and `k11-monitoring` are configured for lazy loading using `React.lazy()`. Webpack creates separate chunks for these modules that are only loaded when the user navigates to the corresponding routes.
 
@@ -550,7 +605,8 @@ Initial Load:
 │  ├── React                          │
 │  ├── React DOM                      │
 │  ├── React Router                   │
-│  ├── Styled Components              │
+│  ├── Mantine UI                     │
+│  ├── React Query                    │
 │  └── Other dependencies             │
 └─────────────────────────────────────┘
          +
@@ -562,14 +618,16 @@ Initial Load:
 │  └── Layout components              │
 └─────────────────────────────────────┘
 
-Lazy Loaded (On-Demand):
+Lazy Loaded (On-Demand via Module Federation):
 ┌─────────────────────────────────────┐
-│  k11-inbox.[hash].js (74 KB)        │
+│  @k11-inbox remoteEntry.js          │
 │  └── InboxApp component             │
+│  └── React Query hooks              │
+│  └── API services                   │
 └─────────────────────────────────────┘
          +
 ┌─────────────────────────────────────┐
-│  k11-monitoring.[hash].js (35 KB)   │
+│  @k11-monitoring remoteEntry.js     │
 │  └── MonitoringApp component         │
 └─────────────────────────────────────┘
 ```
@@ -581,22 +639,35 @@ Lazy Loaded (On-Demand):
 ### Context and Props Flow
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Data Flow                                │
-└─────────────────────────────────────────────────────────────┘
+        ┌─────────────────────────────────────────────────────────────┐
+        │                    Data Flow                                │
+        └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
         ┌───────────────────────────────────┐
         │  AuthContext (Shell)                │
-        │  - Stores: user.email               │
-        │  - Provides: login/logout            │
+        │  - Calls: @api-client/login()      │
+        │  - Stores tokens in sessionStorage  │
+        │  - Provides: user, isAuthenticated│
+        └───────────────────────────────────┘
+                            │
+                            ▼
+        ┌───────────────────────────────────┐
+        │  AppContext (Shell)                 │
+        │  - Reads tokens from @api-client   │
+        │  - Provides: shellData             │
+        │    (authToken, csrfToken,           │
+        │     userEmail, hostUrl)            │
         └───────────────────────────────────┘
                             │
                             ▼
         ┌───────────────────────────────────┐
         │  App.tsx (Shell)                   │
-        │  - Reads: user from useAuth()     │
-        │  - Passes: userEmail as prop      │
+        │  - Fetches plugins via              │
+        │    @plugin-registry                │
+        │  - Loads plugins via                │
+        │    @plugin-loader                  │
+        │  - Passes shellData to modules     │
         └───────────────────────────────────┘
                             │
         ┌───────────────────┴───────────────────┐
@@ -604,14 +675,21 @@ Lazy Loaded (On-Demand):
         ▼                                         ▼
 ┌──────────────────┐                  ┌──────────────────┐
 │  InboxApp         │                  │  MonitoringApp   │
-│  (k11-inbox)      │                  │  (k11-monitoring) │
+│  (@k11-inbox)     │                  │  (@k11-monitoring)│
 │                   │                  │                   │
 │  Receives:        │                  │  Receives:        │
-│  - userEmail      │                  │  - userEmail      │
+│  - shellData      │                  │  - shellData      │
 │    (as prop)      │                  │    (as prop)      │
 │                   │                  │                   │
+│  Uses:            │                  │  Uses:            │
+│  - @api-client    │                  │  - @api-client    │
+│    for API calls  │                  │    for API calls  │
+│  - React Query    │                  │  - React Query    │
+│    for caching    │                  │    for caching    │
+│                   │                  │                   │
 │  Displays:        │                  │  Displays:        │
-│  - Email in UI    │                  │  - Email in UI    │
+│  - Notifications  │                  │  - Monitoring data│
+│  - Queues         │                  │                   │
 └──────────────────┘                  └──────────────────┘
 ```
 
@@ -635,9 +713,17 @@ Lazy Loaded (On-Demand):
 - **Why**: Fast HMR in dev, optimized builds in prod
 - **How**: `USE_DIST` flag switches between `src/` and `dist/`
 
-### 5. Dynamic Plugin Loading
-- **Why**: Customer-specific modules, runtime configuration
-- **How**: Backend API (`/api/plugins`) returns enabled modules dynamically
+### 5. Dynamic Plugin Loading with Module Federation
+- **Why**: Customer-specific modules, runtime configuration, support for multiple frameworks (React, Angular, HTML)
+- **How**: Backend API (`/api/plugins`) returns enabled modules dynamically. `@plugin-loader` uses Module Federation to load React modules, iframes for Angular modules, and direct HTML injection for HTML modules. Plugins can be added/removed without rebuilding the shell.
+
+### 7. Shared API Client
+- **Why**: Consistent API calls across all modules, automatic token management, CSRF handling
+- **How**: `@api-client` package provides `apiFetch()` that automatically includes CSRF and auth tokens from sessionStorage. All modules use the same API client for consistency.
+
+### 8. React Query Integration
+- **Why**: Efficient data fetching, caching, and state management
+- **How**: Feature modules use `@tanstack/react-query` for API calls, providing automatic caching, refetching, and optimistic updates.
 
 ### 6. Fresh Builds Every Time
 - **Why**: Ensures consistency, avoids stale artifacts
@@ -665,7 +751,17 @@ Build System:
 Frontend Framework:
 ├── React 18
 ├── React Router 6
-└── Styled Components 6
+├── Mantine UI 8 (component library)
+└── CSS Modules (styling)
+
+Data Fetching:
+├── @tanstack/react-query (data fetching & caching)
+└── @api-client (API utilities with token management)
+
+Module Federation:
+├── Webpack Module Federation
+├── @plugin-loader (dynamic module loading)
+└── @plugin-registry (plugin configuration)
 
 Development:
 ├── Webpack Dev Server (HMR)
@@ -678,10 +774,10 @@ Development:
 ## Performance Characteristics
 
 ### Bundle Sizes
-- **Vendors**: 4.0 MB (React, router, styled-components)
+- **Vendors**: 4.0 MB (React, router, Mantine UI, React Query)
 - **Main**: 135 KB (Shell app code)
-- **k11-inbox**: 74 KB (Lazy loaded)
-- **k11-monitoring**: 35 KB (Lazy loaded)
+- **@k11-inbox**: 74 KB (Lazy loaded via Module Federation)
+- **@k11-monitoring**: 35 KB (Lazy loaded via Module Federation)
 - **Total**: ~4.24 MB (but only 4.135 MB initial load)
 
 ### Build Times
@@ -698,14 +794,17 @@ Development:
 ## Summary
 
 This architecture provides:
-1. ✅ **Modular Structure**: Independent feature modules
-2. ✅ **Shared Code**: Design system and types
-3. ✅ **Fast Development**: Workspace linking, HMR
-4. ✅ **Optimized Production**: Code splitting, lazy loading
+1. ✅ **Modular Structure**: Independent feature modules with Module Federation
+2. ✅ **Shared Code**: Design system, API client, types, and utilities
+3. ✅ **Fast Development**: Workspace linking, HMR, no build step required
+4. ✅ **Optimized Production**: Code splitting, lazy loading, Module Federation remotes
 5. ✅ **Consistent Builds**: Fresh builds ensure no stale artifacts
-6. ✅ **Scalable**: Easy to add new feature modules
+6. ✅ **Scalable**: Easy to add new feature modules (React, Angular, HTML)
 7. ✅ **Maintainable**: Clear boundaries and dependencies
+8. ✅ **Dynamic Plugin System**: Runtime plugin loading from API
+9. ✅ **Unified API Layer**: Shared `@api-client` with automatic token management
+10. ✅ **Efficient Data Fetching**: React Query for caching and state management
 
-The setup balances development speed with production performance, using modern tooling (TurboRepo, Webpack, pnpm) to create an efficient monorepo architecture.
+The setup balances development speed with production performance, using modern tooling (TurboRepo, Webpack Module Federation, pnpm, React Query) to create an efficient, scalable monorepo architecture that supports multiple frameworks and runtime plugin loading.
 
 

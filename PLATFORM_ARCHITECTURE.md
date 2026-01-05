@@ -28,9 +28,9 @@ The current monorepo uses **build-time bundling** where all modules are compiled
 │ Internal Modules  │                  │ External Plugins  │
 │ (Build-time)      │                  │ (Runtime)         │
 │                   │                  │                   │
-│ - k11-inbox       │                  │ - Angular Apps    │
-│ - k11-monitoring  │                  │ - React Apps      │
-│ - design-system   │                  │ - Vue Apps        │
+│ - @k11-inbox       │                  │ - Angular Apps    │
+│ - @k11-monitoring  │                  │ - React Apps      │
+│ - @design-system   │                  │ - Vue Apps        │
 │                   │                  │ - Any Framework   │
 └──────────────────┘                  └──────────────────┘
 ```
@@ -399,9 +399,10 @@ POC-Monorepo/
 │   │   │   └── index.ts
 │   │   └── package.json
 │   │
-│   ├── k11-inbox/ (existing - internal)
-│   ├── k11-monitoring/ (existing - internal)
-│   └── design-system/ (existing)
+│   ├── k11-inbox/ (existing - internal, @k11-inbox)
+│   ├── k11-monitoring/ (existing - internal, @k11-monitoring)
+│   ├── api-client/ (existing, @api-client)
+│   └── design-system/ (existing, @design-system)
 │
 └── ...
 ```
@@ -448,7 +449,7 @@ Response: [
 
 ## Migration Path
 
-1. **Keep existing setup** for internal modules (k11-inbox, k11-monitoring)
+1. **Keep existing setup** for internal modules (@k11-inbox, @k11-monitoring)
 2. **Add plugin system** alongside existing modules
 3. **Gradually migrate** if needed, or keep both approaches
 4. **External components** use new plugin system

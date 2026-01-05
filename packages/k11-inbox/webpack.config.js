@@ -30,7 +30,7 @@ module.exports = (_, argv) => {
       extensions: [".tsx", ".ts", ".jsx", ".js"],
       alias: {
         "@design-system": path.resolve(__dirname, "../../packages/design-system/src"),
-        "api-client": path.resolve(__dirname, "../../packages/api-client/src"),
+        "@api-client": path.resolve(__dirname, "../../packages/api-client/src"),
       },
       modules: [
         path.resolve(__dirname, "node_modules"),
@@ -104,7 +104,7 @@ module.exports = (_, argv) => {
             singleton: true,
             eager: false,
           },
-          "api-client": {
+          "@api-client": {
             singleton: true,
             eager: false,
           },

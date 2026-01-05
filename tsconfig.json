@@ -16,16 +16,16 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "k11-inbox": [
+      "@k11-inbox": [
         "packages/k11-inbox/src/index.ts"
       ],
-      "k11-inbox/*": [
+      "@k11-inbox/*": [
         "packages/k11-inbox/src/*"
       ],
-      "k11-monitoring": [
+      "@k11-monitoring": [
         "packages/k11-monitoring/src/index.ts"
       ],
-      "k11-monitoring/*": [
+      "@k11-monitoring/*": [
         "packages/k11-monitoring/src/*"
       ],
       "@design-system": [
@@ -43,22 +43,22 @@
       "@types/*": [
         "packages/types/src/*"
       ],
-      "plugin-registry": [
+      "@plugin-registry": [
         "packages/plugin-registry/src/index.ts"
       ],
-      "plugin-registry/*": [
+      "@plugin-registry/*": [
         "packages/plugin-registry/src/*"
       ],
-      "plugin-loader": [
+      "@plugin-loader": [
         "packages/plugin-loader/src/index.ts"
       ],
-      "plugin-loader/*": [
+      "@plugin-loader/*": [
         "packages/plugin-loader/src/*"
       ],
-      "api-client": [
+      "@api-client": [
         "packages/api-client/src/index.ts"
       ],
-      "api-client/*": [
+      "@api-client/*": [
         "packages/api-client/src/*"
       ]
     }

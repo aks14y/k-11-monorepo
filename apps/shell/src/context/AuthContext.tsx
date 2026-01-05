@@ -11,7 +11,7 @@ import {
   getApiConfig,
   shouldUseMockAuth,
   getMockAuthResponse,
-} from "api-client";
+} from "@api-client";
 
 type AuthContextValue = {
   isAuthenticated: boolean;

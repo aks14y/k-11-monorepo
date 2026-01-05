@@ -7,7 +7,7 @@ Shared package for making API calls with CSRF and authentication tokens.
 ### React Feature Modules
 
 ```typescript
-import { apiFetch, getApiConfig } from "api-client";
+import { apiFetch, getApiConfig } from "@api-client";
 
 // In your component
 const MyFeature = ({ shellData }) => {

@@ -4,8 +4,8 @@ import { Layout } from "./components/Layout";
 import { LoginPage } from "./components/LoginPage";
 import { useAuth } from "./context/AuthContext";
 import { Heading, Text, Card, Stack } from "@design-system";
-import type { Plugin } from "plugin-registry";
-import { PluginRegistry } from "plugin-registry";
+import type { Plugin } from "@plugin-registry";
+import { PluginRegistry } from "@plugin-registry";
 import { DynamicRoute } from "./components/DynamicRoute";
 
 const ProtectedRoute = ({ children, isAuthenticated }: { children: ReactNode; isAuthenticated: boolean }) => {

@@ -70,9 +70,9 @@ module.exports = (_, argv) => {
     "react/jsx-dev-runtime": path.resolve(shellNodeModules, "react/jsx-dev-runtime.js"),
     "@design-system": getPackagePath("design-system"),
     "@types": getPackagePath("types"),
-    "api-client": getPackagePath("api-client"),
-    "plugin-registry": getPackagePath("plugin-registry"),
-    "plugin-loader": getPackagePath("plugin-loader"),
+    "@api-client": getPackagePath("api-client"),
+    "@plugin-registry": getPackagePath("plugin-registry"),
+    "@plugin-loader": getPackagePath("plugin-loader"),
   };
 
   return {
@@ -110,9 +110,9 @@ module.exports = (_, argv) => {
               const allowedPackages = [
                 "@design-system",
                 "@types",
-                "api-client",
-                "plugin-registry",
-                "plugin-loader"
+                "@api-client",
+                "@plugin-registry",
+                "@plugin-loader"
               ];
               
               return !allowedPackages.some(pkg => modulePath.includes(pkg));
@@ -197,7 +197,7 @@ module.exports = (_, argv) => {
             singleton: true,
             eager: true
           },
-          "api-client": {
+          "@api-client": {
             singleton: true,
             eager: true
           },

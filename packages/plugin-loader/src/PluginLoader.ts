@@ -1,4 +1,4 @@
-import type { Plugin } from "plugin-registry";
+import type { Plugin } from "@plugin-registry";
 import { AngularLoader } from "./loaders/AngularLoader";
 import { HtmlLoader } from "./loaders/HtmlLoader";
 import { ReactLoader } from "./loaders/ReactLoader";

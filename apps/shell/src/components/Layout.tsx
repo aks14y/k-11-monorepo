@@ -3,7 +3,7 @@ import { Button, Stack } from "@design-system";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { Link, useNavigate } from "react-router-dom";
-import type { Plugin } from "plugin-registry";
+import type { Plugin } from "@plugin-registry";
 import styles from "./Layout.module.css";
 
 type LayoutProps = {

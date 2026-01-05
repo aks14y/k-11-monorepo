@@ -30,7 +30,7 @@
 
 ## How They Work Together
 
-### For Remote Modules (k11-inbox, k11-monitoring):
+### For Remote Modules (@k11-inbox, @k11-monitoring):
 
 ```javascript
 // package.json
@@ -138,7 +138,7 @@ shared: {
 
 ### 1. **package.json Structure**
 
-**For Remotes (k11-inbox, k11-monitoring):**
+**For Remotes (@k11-inbox, @k11-monitoring):**
 ```json
 {
   "peerDependencies": {

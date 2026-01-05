@@ -12,10 +12,13 @@ k11-monorepo/
 ├── apps/                    # Applications (deployable units)
 │   └── shell/              # Host/Shell application
 ├── packages/                # Shared packages (libraries)
-│   ├── design-system/     # UI component library
-│   ├── k11-inbox/         # Inbox feature module
-│   ├── k11-monitoring/    # Monitoring feature module
-│   ├── types/             # Shared TypeScript types
+│   ├── design-system/     # UI component library (@design-system)
+│   ├── api-client/        # Shared API client (@api-client)
+│   ├── plugin-registry/   # Plugin registry (@plugin-registry)
+│   ├── plugin-loader/     # Plugin loader (@plugin-loader)
+│   ├── k11-inbox/         # Inbox feature module (@k11-inbox)
+│   ├── k11-monitoring/    # Monitoring feature module (@k11-monitoring)
+│   ├── types/             # Shared TypeScript types (@types)
 │   └── utils/             # Shared utilities
 ├── pnpm-workspace.yaml     # Workspace configuration
 ├── turbo.json             # TurboRepo task orchestration
@@ -43,7 +46,9 @@ k11-monorepo/
 **Dependencies:**
 - Consumes all packages via `workspace:*` protocol
 - Uses `@design-system` for UI components
-- Lazy loads `k11-inbox` and `k11-monitoring`
+- Uses `@api-client` for API calls with automatic token management
+- Uses `@plugin-registry` and `@plugin-loader` for dynamic plugin loading
+- Lazy loads `@k11-inbox` and `@k11-monitoring` via Module Federation
 - Uses `@types` for shared type definitions
 
 **Build Output:**
@@ -60,11 +65,11 @@ k11-monorepo/
 **Responsibilities:**
 - ✅ Reusable React components (`Button`, `Card`, `Input`, `Typography`, etc.)
 - ✅ Design tokens (colors, spacing, typography, radii)
-- ✅ Theme provider for styled-components
+- ✅ Theme provider for Mantine UI
 - ✅ Type-safe theme definitions
 
 **Dependencies:**
-- Peer dependencies: `react`, `react-dom`, `styled-components`
+- Peer dependencies: `react`, `react-dom`, `@mantine/core`, `@mantine/hooks`
 - No internal package dependencies
 
 **Consumers:**
@@ -86,8 +91,9 @@ k11-monorepo/
 
 **Dependencies:**
 - `@design-system` (for UI components)
+- `@api-client` (for API calls with automatic token handling)
 - `@types` (for shared types)
-- Peer dependencies: `react`, `react-dom`, `styled-components`
+- Peer dependencies: `react`, `react-dom`, `@mantine/core`, `@mantine/hooks`, `@tanstack/react-query`
 
 **Consumers:**
 - `apps/shell` (lazy loaded)
@@ -108,8 +114,9 @@ k11-monorepo/
 
 **Dependencies:**
 - `@design-system` (for UI components)
+- `@api-client` (for API calls with automatic token handling)
 - `@types` (for shared types)
-- Peer dependencies: `react`, `react-dom`, `styled-components`
+- Peer dependencies: `react`, `react-dom`, `@mantine/core`, `@mantine/hooks`, `@tanstack/react-query`
 
 **Consumers:**
 - `apps/shell` (lazy loaded)
@@ -237,9 +244,12 @@ Defines workspace boundaries for pnpm.
 ### **Root `tsconfig.json`**
 - Base compiler options
 - Path mappings for workspace packages:
-  - `k11-inbox` → `packages/k11-inbox/src/`
-  - `k11-monitoring` → `packages/k11-monitoring/src/`
+  - `@k11-inbox` → `packages/k11-inbox/src/`
+  - `@k11-monitoring` → `packages/k11-monitoring/src/`
   - `@design-system` → `packages/design-system/src/`
+  - `@api-client` → `packages/api-client/src/`
+  - `@plugin-registry` → `packages/plugin-registry/src/`
+  - `@plugin-loader` → `packages/plugin-loader/src/`
   - `@types` → `packages/types/src/`
 
 ### **Package `tsconfig.json`**

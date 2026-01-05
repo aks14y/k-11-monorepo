@@ -1,5 +1,5 @@
 {
-  "name": "k11-monitoring",
+  "name": "@k11-monitoring",
   "version": "0.1.0",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -15,7 +15,7 @@
   },
   "peerDependencies": {
     "@design-system": "workspace:*",
-    "api-client": "workspace:*",
+    "@api-client": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@tanstack/react-query": "^5.56.2"
@@ -27,7 +27,7 @@
     "@babel/preset-typescript": "^7.24.0",
     "@babel/runtime": "^7.28.4",
     "@design-system": "workspace:*",
-    "api-client": "workspace:*",
+    "@api-client": "workspace:*",
     "clsx": "^2.1.1",
     "detect-node-es": "^1.1.0",
     "get-nonce": "^1.0.1",

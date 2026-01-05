@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useMemo, useState, useEffect } from "react";
-import { getApiConfig, getUserEmail } from "api-client";
+import { getApiConfig, getUserEmail } from "@api-client";
 
 type SharedData = Record<string, unknown>;
 

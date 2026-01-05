@@ -1,5 +1,5 @@
 import React from "react";
-import type { Plugin } from "plugin-registry";
+import type { Plugin } from "@plugin-registry";
 
 export type LoadedReactPlugin = {
   kind: "react";

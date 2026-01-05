@@ -30,7 +30,7 @@ This document explains how to deploy the React monorepo with Module Federation u
         │                 │                 │
         ▼                 ▼                 ▼
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│ k11-inbox    │  │ k11-monitoring│  │ External     │
+│ @k11-inbox   │  │ @k11-monitoring│  │ External     │
 │ Docker       │  │ Docker       │  │ Module       │
 │ Container    │  │ Container    │  │ Container    │
 │              │  │              │  │              │

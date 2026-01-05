@@ -1,4 +1,4 @@
-import type { Plugin } from "plugin-registry";
+import type { Plugin } from "@plugin-registry";
 import type { LoadedReactPlugin } from "../types";
 import { ModuleFederationLoader } from "./ModuleFederationLoader";
 

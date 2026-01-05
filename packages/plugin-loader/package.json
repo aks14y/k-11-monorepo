@@ -1,5 +1,5 @@
 {
-  "name": "plugin-loader",
+  "name": "@plugin-loader",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -24,6 +24,6 @@
     "@module-federation/runtime-core": "^0.21.6",
     "@module-federation/runtime-tools": "^0.21.6",
     "@module-federation/sdk": "^0.21.6",
-    "plugin-registry": "workspace:*"
+    "@plugin-registry": "workspace:*"
   }
 }

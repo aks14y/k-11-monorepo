@@ -1,5 +1,5 @@
 {
-  "name": "plugin-registry",
+  "name": "@plugin-registry",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

@@ -29,7 +29,7 @@ const LOCAL_HOST = "testall.kalki.io";
 // Set to true to use mock data (useful for CORS issues during development)
 // Set to false to use real API
 // TODO: Change this to false once CORS is resolved
-const USE_MOCK_AUTH = true;
+const USE_MOCK_AUTH = false;
 
 /**
  * Check if running in local environment

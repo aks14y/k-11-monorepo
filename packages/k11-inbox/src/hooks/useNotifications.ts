@@ -8,8 +8,10 @@ import {
   fetchNotificationById,
   markNotificationAsRead,
   deleteNotification,
+  fetchQueues,
   type Notification,
   type FetchNotificationsParams,
+  type Queue,
 } from "../services/notificationsService";
 
 /**
@@ -21,6 +23,7 @@ export const notificationKeys = {
   list: (params: FetchNotificationsParams) => [...notificationKeys.lists(), params] as const,
   details: () => [...notificationKeys.all, "detail"] as const,
   detail: (id: string) => [...notificationKeys.details(), id] as const,
+  queues: () => [...notificationKeys.all, "queues"] as const,
 };
 
 /**
@@ -88,6 +91,18 @@ export const useDeleteNotification = () => {
       // Remove the notification from cache
       queryClient.removeQueries({ queryKey: notificationKeys.detail(notificationId) });
     },
+  });
+};
+
+/**
+ * Hook to fetch notification queues
+ */
+export const useQueues = () => {
+  return useQuery({
+    queryKey: notificationKeys.queues(),
+    queryFn: fetchQueues,
+    staleTime: 1000 * 60 * 5, // 5 minutes - queues don't change often
+    gcTime: 1000 * 60 * 10, // 10 minutes - cache for 10 minutes
   });
 };
 
