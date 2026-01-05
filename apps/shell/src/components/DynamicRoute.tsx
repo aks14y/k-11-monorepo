@@ -9,10 +9,9 @@ import styles from "./DynamicRoute.module.css";
 
 type DynamicRouteProps = {
   plugin: Plugin;
-  userEmail?: string;
 };
 
-export const DynamicRoute = ({ plugin, userEmail }: DynamicRouteProps) => {
+export const DynamicRoute = ({ plugin }: DynamicRouteProps) => {
   const [loaded, setLoaded] = useState<LoadedPlugin | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,10 +24,10 @@ export const DynamicRoute = ({ plugin, userEmail }: DynamicRouteProps) => {
     () => ({
       authToken,
       csrfToken,
-      userEmail: user?.email || userEmail || null,
+      userEmail: user?.email || null,
       hostUrl: shellData.hostUrl,
     }),
-    [authToken, csrfToken, user?.email, userEmail, shellData.hostUrl]
+    [authToken, csrfToken, user?.email, shellData.hostUrl]
   );
 
   useEffect(() => {
@@ -88,7 +87,7 @@ export const DynamicRoute = ({ plugin, userEmail }: DynamicRouteProps) => {
       iframe.removeEventListener("load", sendDataToIframe);
       clearTimeout(timeout);
     };
-  }, [loaded, authToken, csrfToken, user, userEmail, shellDataForModules]);
+  }, [loaded, authToken, csrfToken, user, shellDataForModules]);
 
   // Listen for messages FROM iframe (two-way communication)
   useEffect(() => {
@@ -149,7 +148,7 @@ export const DynamicRoute = ({ plugin, userEmail }: DynamicRouteProps) => {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [loaded, authToken, csrfToken, user, userEmail, shellDataForModules]);
+  }, [loaded, authToken, csrfToken, user, shellDataForModules]);
 
   // Conditional returns AFTER all hooks
   if (loading) {

@@ -100,7 +100,7 @@ export const App = () => {
                             </Card>
                           }
                         >
-                          <DynamicRoute plugin={plugin} userEmail={user?.email} />
+                          <DynamicRoute plugin={plugin} />
                         </Suspense>
                       </ProtectedRoute>
                     }
